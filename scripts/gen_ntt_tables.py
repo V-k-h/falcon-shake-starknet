@@ -19,7 +19,10 @@ argument, kept executable:
      wraps and every reduction input fits u128);
   4. derives the bit-reversal permutation, the I2-scaled inverse root tables, and
      a fully unrolled Falcon-512 forward transform, then (with --emit) writes the
-     formatter-clean generated Cairo sources.
+     formatter-clean generated Cairo sources;
+  5. derives the position and twist tables of the Falcon-512 inverse computed with
+     the forward transform, and proves that construction equal to the recursive
+     INTT and to schoolbook negacyclic multiplication.
 
 Exits non-zero on any mismatch.
 """
@@ -55,6 +58,7 @@ SCALED_OUT = REPO / "crates/ntt/src/roots_scaled.cairo"
 FELT_OUT = REPO / "crates/ntt/src/roots_felt.cairo"
 BITREV_OUT = REPO / "crates/ntt/src/bitrev.cairo"
 FAST_FALCON512_OUT = REPO / "crates/ntt/src/falcon512_fast.cairo"
+INVERSE_TABLES_OUT = REPO / "crates/ntt/src/falcon512_inverse_tables.cairo"
 
 FWD_NAME = {n: f"phi{2 * n}_roots_zq" for n in ALL_SIZES}
 INV_NAME = {n: f"phi{2 * n}_roots_zq_inv" for n in ALL_SIZES}
@@ -444,6 +448,128 @@ def check_falcon512_unrolled(tables):
     )
 
 
+# --- Falcon-512 inverse through the forward transform ---
+
+U16_MAX = 2**16 - 1
+
+
+def falcon512_inverse_tables(tables):
+    """Position and twist tables that compute the Falcon-512 inverse NTT with the forward
+    transform.
+
+    The forward transform evaluates f at the 512 roots of x^512 + 1 in the Falcon
+    evaluation order, NTT(f)[i] = f(r_i). Every root is an odd power of the primitive
+    1024-th root of unity psi = r_0, so r_i = psi^(2*m_i + 1) where i -> m_i is a
+    permutation of 0..511 with inverse `pos`. Interpolation at those roots is
+
+        f_j = n^-1 * psi^-j * NTT(g)[pos((n - j) mod n)],   g_k = NTT(f)[pos(k)] * psi^-k,
+
+    because sum_i NTT(f)_i * r_i^-j = psi^-j * sum_k NTT(f)_pos(k) * psi^(-2jk) is a cyclic
+    DFT at frequency -j = n - j, and NTT(g)[pos(m)] = sum_k g_k * psi^k * psi^(2km) is
+    the same cyclic DFT at frequency m.
+    """
+    n = 512
+    roots = ntt_rec([0, 1] + [0] * (n - 2), tables)
+    psi = roots[0]
+    log = {}
+    power = 1
+    for e in range(2 * n):
+        assert power not in log, "psi is not a primitive 2n-th root of unity"
+        log[power] = e
+        power = power * psi % Q
+    assert power == 1, "psi does not have order 2n"
+    natural = []
+    for r in roots:
+        e = log[r]
+        assert e % 2 == 1, "evaluation point is not a root of x^n + 1"
+        natural.append((e - 1) // 2)
+    assert sorted(natural) == list(range(n)), "evaluation order is not a permutation"
+    pos = [0] * n
+    for i, m in enumerate(natural):
+        pos[m] = i
+    psi_inv, n_inv = pow(psi, -1, Q), pow(n, -1, Q)
+    in_position = pos
+    in_twist = [pow(psi_inv, k, Q) for k in range(n)]
+    out_position = [pos[(n - j) % n] for j in range(n)]
+    out_twist = [n_inv * pow(psi_inv, j, Q) % Q for j in range(n)]
+    return in_position, in_twist, out_position, out_twist
+
+
+def intt_via_forward(f_ntt, tables, inverse, b_ntt=None):
+    """Exact model of crates/ntt/src/falcon512_inverse.cairo: gather each input in natural
+    root order and reduce its twist product once (optionally fused with a pointwise
+    product), run the forward transform, then reduce one twist product per output. Inputs
+    may be any u16 values; they are read modulo q. Asserts every product stays within the
+    bounded-int type the Cairo code declares for it."""
+    in_position, in_twist, out_position, out_twist = inverse
+    n = len(f_ntt)
+    g = []
+    for k in range(n):
+        p = in_position[k]
+        if b_ntt is None:
+            value = f_ntt[p] * in_twist[k]
+            assert 0 <= value <= U16_MAX**2, "twist product exceeds its Cairo bound"
+        else:
+            value = f_ntt[p] * b_ntt[p] * in_twist[k]
+            assert 0 <= value <= U16_MAX**3, "pointwise twist product exceeds its Cairo bound"
+        g.append(value % Q)
+    transformed = ntt_rec(g, tables)
+    out = []
+    for j in range(n):
+        value = transformed[out_position[j]] * out_twist[j]
+        assert 0 <= value <= U16_MAX**2, "output twist product exceeds its Cairo bound"
+        out.append(value % Q)
+    return out
+
+
+def negacyclic_mul(a, b):
+    """Schoolbook product in Z_q[x]/(x^n + 1), independent of any NTT."""
+    n = len(a)
+    out = [0] * n
+    for i, x in enumerate(a):
+        if x:
+            for j, y in enumerate(b):
+                if i + j < n:
+                    out[i + j] += x * y
+                else:
+                    out[i + j - n] -= x * y
+    return [v % Q for v in out]
+
+
+def check_falcon512_inverse(tables):
+    """Prove the forward-based inverse against the recursive INTT, the forward round trip,
+    and schoolbook multiplication, including worst-case and non-canonical u16 inputs."""
+    n = 512
+    inverse = falcon512_inverse_tables(tables)
+    rng = random.Random(1024)
+    samples = sample_inputs(n, rng)
+    raw_u16 = [[U16_MAX] * n, [rng.randrange(U16_MAX + 1) for _ in range(n)]]
+    for f in samples:
+        assert intt_via_forward(ntt_rec(f, tables), tables, inverse) == f, "INTT(NTT(f)) != f"
+    for a in samples + raw_u16:
+        expect = intt_rec([v % Q for v in a], tables)
+        assert intt_via_forward(a, tables, inverse) == expect, "inverse != recursive INTT"
+    pairs = [(raw_u16[0], raw_u16[0]), (raw_u16[1], [Q - 1] * n), ([Q - 1] * n, [Q - 1] * n)]
+    for _ in range(3):
+        pairs.append(([rng.randrange(Q) for _ in range(n)], [rng.randrange(Q) for _ in range(n)]))
+    for a, b in pairs:
+        expect = intt_rec([x * y % Q for x, y in zip(a, b)], tables)
+        assert intt_via_forward(a, tables, inverse, b) == expect, "product inverse mismatch"
+    for _ in range(2):
+        s1 = [rng.randrange(-200, 201) % Q for _ in range(n)]
+        h = [rng.randrange(Q) for _ in range(n)]
+        got = intt_via_forward(ntt_rec(s1, tables), tables, inverse, ntt_rec(h, tables))
+        assert got == negacyclic_mul(s1, h), "s1*h != schoolbook product"
+    x = [0, 1] + [0] * (n - 2)
+    x511 = [0] * (n - 1) + [1]
+    wrap = intt_via_forward(ntt_rec(x, tables), tables, inverse, ntt_rec(x511, tables))
+    assert wrap == [Q - 1] + [0] * (n - 1), "negacyclic wrap mismatch"
+    print(
+        "ok: forward-based Falcon-512 inverse == recursive INTT and schoolbook products "
+        "(canonical, worst-case, and raw u16 inputs)"
+    )
+
+
 # --- Emission ---
 
 HEADER = """\
@@ -539,6 +665,36 @@ def emit_bitrev():
     ]
     BITREV_OUT.write_text("".join(out))
     print(f"wrote {BITREV_OUT.relative_to(REPO)}")
+
+
+def emit_falcon512_inverse_tables(tables):
+    in_position, in_twist, out_position, out_twist = falcon512_inverse_tables(tables)
+    out = [
+        HEADER.format(
+            what=(
+                "Position and twist tables for the Falcon-512 inverse NTT computed with\n"
+                "// the generated forward transform (falcon512_inverse.cairo), derived\n"
+                "// from roots.cairo with psi = the first Falcon evaluation point."
+            )
+        ),
+        "\n//! Falcon-512 inverse-transform tables (generated).\n",
+    ]
+    entries = [
+        ("INV_IN_POSITION", in_position,
+         "Evaluation-order position of the root `psi^(2k + 1)`, for `k = 0..511`."),
+        ("INV_IN_TWIST", in_twist,
+         "`psi^-k mod q`, applied to the input gathered for natural index `k`."),
+        ("INV_OUT_POSITION", out_position,
+         "Evaluation-order position read for output coefficient `j`: that of the root\n"
+         "/// `psi^(2((n - j) mod n) + 1)`."),
+        ("INV_OUT_TWIST", out_twist,
+         "`n^-1 * psi^-j mod q`, applied to output coefficient `j`."),
+    ]
+    for name, values, doc in entries:
+        out.append(f"\n/// {doc}\n")
+        out.append(fmt_table(name, values).replace("const", "pub(crate) const", 1))
+    INVERSE_TABLES_OUT.write_text("".join(out))
+    print(f"wrote {INVERSE_TABLES_OUT.relative_to(REPO)}")
 
 
 def wrapped(items, indent="    ", width=100):
@@ -676,7 +832,7 @@ def emit_falcon512_fast(tables):
 
 def format_generated():
     """Apply the repository's pinned Cairo formatter to every emitted source."""
-    for path in (SCALED_OUT, FELT_OUT, BITREV_OUT, FAST_FALCON512_OUT):
+    for path in (SCALED_OUT, FELT_OUT, BITREV_OUT, FAST_FALCON512_OUT, INVERSE_TABLES_OUT):
         subprocess.run(["scarb", "fmt", str(path)], cwd=REPO, check=True)
     print("formatted generated Cairo sources")
 
@@ -700,12 +856,14 @@ def main():
     check_negacyclic(tables)
     check_schedule(tables)
     check_falcon512_unrolled(tables)
+    check_falcon512_inverse(tables)
 
     if args.emit:
         emit_scaled(tables)
         emit_felt_roots(tables)
         emit_bitrev()
         emit_falcon512_fast(tables)
+        emit_falcon512_inverse_tables(tables)
         format_generated()
     print("all checks passed")
 

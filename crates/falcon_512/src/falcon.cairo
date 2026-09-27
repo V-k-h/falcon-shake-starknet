@@ -9,17 +9,16 @@
 //! a bad hint yields `false`. Both transforms use the generated fixed-parameter
 //! Falcon-512 path, and the pointwise check tests `s1n*h == hn (mod q)`.
 //!
-//! Direct variant: computes `s1 * h` on-chain as `INTT(NTT(s1) ∘ h_ntt)` — the
-//! generated forward transform's reduced pointwise products feed the generic inverse
-//! engine with their exact bound.
+//! Direct variant: computes `s1 * h` on-chain as `INTT(NTT(s1) ∘ h_ntt)`. Both the
+//! forward transform and the inverse run on the generated fixed-parameter Falcon-512
+//! graph: the inverse gathers the pointwise products into natural root order with a twist,
+//! transforms them forward, and untwists the result (`pqbench_ntt::falcon512_inverse`).
 //!
 //! The verifier path decodes packed coefficients into canonical `u16` values and keeps
 //! that representation through the generated NTT and norm calculation. The public core
 //! functions also accept validated felt coefficients for standalone callers.
 
-use pqbench_ntt::engine::intt;
-use pqbench_ntt::falcon512::{PRODUCT_BITS, PRODUCT_BOUND_FELT, config};
-use pqbench_ntt::ntt_falcon512_fast_u16_unchecked;
+use pqbench_ntt::{intt_product_falcon512_fast_u16, ntt_falcon512_fast_u16_unchecked};
 use crate::zq::{Q32, center_sq, centered_difference_sq};
 
 /// Maximum allowed `||s0||^2 + ||s1||^2` for Falcon-512 (FIPS 206 / falcon.py sig_bound).
@@ -45,12 +44,6 @@ fn product_difference(a: u16, b: u16, c: u16) -> u32 {
     a * b + Q32 - c
 }
 
-#[inline(always)]
-fn product_as_felt(a: u16, b: u16) -> felt252 {
-    let a: u32 = a.into();
-    let b: u32 = b.into();
-    (a * b).into()
-}
 
 /// Verify with a signer-supplied product hint. All spans must have length 512 with
 /// coefficients in `[0, Q)` — guaranteed by `packing::unpack_512` and
@@ -201,10 +194,11 @@ pub(crate) fn verify_512_with_hint_u16(
 }
 
 /// Verify without a hint (direct variant): compute `s1 * h` on-chain as
-/// `INTT(NTT(s1) ∘ h_ntt)` — 1 NTT + 1 INTT because the public key is already stored in
-/// the NTT domain — then accept iff `||msg_point - s1*h||^2 + ||s1||^2 <= SIG_BOUND_512`.
-/// Same trust surface as the textbook equation (no signer-supplied hint), 29 fewer
-/// signature felts than [`verify_512_with_hint`], at the cost of the INTT.
+/// `INTT(NTT(s1) ∘ h_ntt)` — one forward transform of `s1` and one inverse, because the
+/// public key is already stored in the NTT domain — then accept iff
+/// `||msg_point - s1*h||^2 + ||s1||^2 <= SIG_BOUND_512`. Same trust surface as the
+/// textbook equation (no signer-supplied hint) and 29 fewer signature felts than
+/// [`verify_512_with_hint`].
 pub fn verify_512_direct(s1: Span<felt252>, h_ntt: Span<felt252>, msg_point: Span<u16>) -> bool {
     assert(s1.len() == 512, 's1 must be 512 coeffs');
     assert(h_ntt.len() == 512, 'h_ntt must be 512 coeffs');
@@ -221,58 +215,10 @@ pub(crate) fn verify_512_direct_u16(s1: Span<u16>, h_ntt: Span<u16>, msg_point: 
     assert(h_ntt.len() == 512, 'h_ntt must be 512 coeffs');
     assert(msg_point.len() == 512, 'msg_point must be 512 coeffs');
 
-    let cfg = config();
     // `s1` is canonical by the same verifier/wrapper precondition as the hint path.
     let s1_ntt = ntt_falcon512_fast_u16_unchecked(s1);
-
-    // Pointwise products of two reduced inputs are below q^2. They feed the inverse
-    // engine unreduced under its exact product bound.
-    let mut prods: Array<felt252> = array![];
-    let mut s1n_iter = s1_ntt.span();
-    let mut h_iter = h_ntt;
-    while let Some(s1n_c) = s1n_iter.multi_pop_front::<16>() {
-        let [
-            s1n0,
-            s1n1,
-            s1n2,
-            s1n3,
-            s1n4,
-            s1n5,
-            s1n6,
-            s1n7,
-            s1n8,
-            s1n9,
-            s1n10,
-            s1n11,
-            s1n12,
-            s1n13,
-            s1n14,
-            s1n15,
-        ] =
-            (*s1n_c)
-            .unbox();
-        let [h0, h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11, h12, h13, h14, h15] = (*h_iter
-            .multi_pop_front::<16>()
-            .unwrap())
-            .unbox();
-        prods.append(product_as_felt(s1n0, h0));
-        prods.append(product_as_felt(s1n1, h1));
-        prods.append(product_as_felt(s1n2, h2));
-        prods.append(product_as_felt(s1n3, h3));
-        prods.append(product_as_felt(s1n4, h4));
-        prods.append(product_as_felt(s1n5, h5));
-        prods.append(product_as_felt(s1n6, h6));
-        prods.append(product_as_felt(s1n7, h7));
-        prods.append(product_as_felt(s1n8, h8));
-        prods.append(product_as_felt(s1n9, h9));
-        prods.append(product_as_felt(s1n10, h10));
-        prods.append(product_as_felt(s1n11, h11));
-        prods.append(product_as_felt(s1n12, h12));
-        prods.append(product_as_felt(s1n13, h13));
-        prods.append(product_as_felt(s1n14, h14));
-        prods.append(product_as_felt(s1n15, h15));
-    }
-    let s1h = intt(prods.span(), PRODUCT_BITS, PRODUCT_BOUND_FELT, @cfg);
+    // s1 * h mod (q, x^512 + 1), natural order, every coefficient in [0, q).
+    let s1h = intt_product_falcon512_fast_u16(s1_ntt.span(), h_ntt);
 
     let mut s1h_iter = s1h.span();
     let mut msg_iter = msg_point;
@@ -290,23 +236,22 @@ pub(crate) fn verify_512_direct_u16(s1: Span<u16>, h_ntt: Span<u16>, msg_point: 
             .multi_pop_front::<16>()
             .unwrap())
             .unbox();
-        // INTT outputs are reduced, so their u16 downcasts cannot fail.
-        acc += centered_difference_sq(m0, p0.try_into().unwrap()) + center_sq(v0);
-        acc += centered_difference_sq(m1, p1.try_into().unwrap()) + center_sq(v1);
-        acc += centered_difference_sq(m2, p2.try_into().unwrap()) + center_sq(v2);
-        acc += centered_difference_sq(m3, p3.try_into().unwrap()) + center_sq(v3);
-        acc += centered_difference_sq(m4, p4.try_into().unwrap()) + center_sq(v4);
-        acc += centered_difference_sq(m5, p5.try_into().unwrap()) + center_sq(v5);
-        acc += centered_difference_sq(m6, p6.try_into().unwrap()) + center_sq(v6);
-        acc += centered_difference_sq(m7, p7.try_into().unwrap()) + center_sq(v7);
-        acc += centered_difference_sq(m8, p8.try_into().unwrap()) + center_sq(v8);
-        acc += centered_difference_sq(m9, p9.try_into().unwrap()) + center_sq(v9);
-        acc += centered_difference_sq(m10, p10.try_into().unwrap()) + center_sq(v10);
-        acc += centered_difference_sq(m11, p11.try_into().unwrap()) + center_sq(v11);
-        acc += centered_difference_sq(m12, p12.try_into().unwrap()) + center_sq(v12);
-        acc += centered_difference_sq(m13, p13.try_into().unwrap()) + center_sq(v13);
-        acc += centered_difference_sq(m14, p14.try_into().unwrap()) + center_sq(v14);
-        acc += centered_difference_sq(m15, p15.try_into().unwrap()) + center_sq(v15);
+        acc += centered_difference_sq(m0, p0) + center_sq(v0);
+        acc += centered_difference_sq(m1, p1) + center_sq(v1);
+        acc += centered_difference_sq(m2, p2) + center_sq(v2);
+        acc += centered_difference_sq(m3, p3) + center_sq(v3);
+        acc += centered_difference_sq(m4, p4) + center_sq(v4);
+        acc += centered_difference_sq(m5, p5) + center_sq(v5);
+        acc += centered_difference_sq(m6, p6) + center_sq(v6);
+        acc += centered_difference_sq(m7, p7) + center_sq(v7);
+        acc += centered_difference_sq(m8, p8) + center_sq(v8);
+        acc += centered_difference_sq(m9, p9) + center_sq(v9);
+        acc += centered_difference_sq(m10, p10) + center_sq(v10);
+        acc += centered_difference_sq(m11, p11) + center_sq(v11);
+        acc += centered_difference_sq(m12, p12) + center_sq(v12);
+        acc += centered_difference_sq(m13, p13) + center_sq(v13);
+        acc += centered_difference_sq(m14, p14) + center_sq(v14);
+        acc += centered_difference_sq(m15, p15) + center_sq(v15);
     }
     let norm: u64 = acc.try_into().unwrap();
     norm <= SIG_BOUND_512

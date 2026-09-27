@@ -41,20 +41,24 @@ Current efficiency of every measured entry, per crate (the values pinned in
 |---|---|--:|--:|
 | [`ecdsa_stark`](crates/ecdsa_stark) | verify (classical control) | 30,855 | 152 |
 | [`falcon_512`](crates/falcon_512) | verify, SHAKE-256 hint variant | 50,163,668 | 312,892 |
-| [`falcon_512`](crates/falcon_512) | verify, SHAKE-256 direct variant | 60,359,788 | 413,819 |
+| [`falcon_512`](crates/falcon_512) | verify, SHAKE-256 direct variant | 50,696,138 | 318,500 |
 | [`bench_targets`](crates/bench_targets) | ECDSA-STARK account, inside `__validate__` | 160,795 | 1,437 |
 | [`bench_targets`](crates/bench_targets) | Falcon-512 SHAKE-256 hint account, inside `__validate__` | 51,733,728 | 327,157 |
-| [`bench_targets`](crates/bench_targets) | Falcon-512 SHAKE-256 direct account, inside `__validate__` | 61,878,938 | 427,598 |
+| [`bench_targets`](crates/bench_targets) | Falcon-512 SHAKE-256 direct account, inside `__validate__` | 52,215,288 | 332,279 |
 | [`ntt`](crates/ntt) | forward 512-point transform | 8,895,740 | 81,826 |
 | [`ntt`](crates/ntt) | forward transform, unreduced output | 7,832,270 | 73,587 |
 | [`ntt`](crates/ntt) | generated Falcon-512 transform, felt input | 2,137,010 | 15,635 |
 | [`ntt`](crates/ntt) | generated Falcon-512 transform, `u16` input | 2,137,010 | 15,635 |
+| [`ntt`](crates/ntt) | Falcon-512 inverse via the generated graph | 4,538,050 | 36,641 |
+| [`ntt`](crates/ntt) | Falcon-512 product inverse via the generated graph | 4,990,090 | 40,803 |
 | [`ntt`](crates/ntt) | forward + inverse roundtrip | 22,725,980 | 211,044 |
 
 ECDSA-STARK is the classical scheme in use today, a cost reference rather than a
 post-quantum candidate. The pure-Cairo Keccak-f[1600] behind the SHAKE-256
 hash-to-point dominates both Falcon variants. The two variants differ only in how the
-polynomial product `s1 * h` is obtained; see
+polynomial product `s1 * h` is obtained, and both run on the generated Falcon-512
+forward graph, so they cost within about 1% of each other; the direct variant needs no
+signer-supplied hint and a 31-felt signature instead of 60. See
 [`HINT_VS_DIRECT.md`](crates/falcon_512/HINT_VS_DIRECT.md).
 
 ## Layout

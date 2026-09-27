@@ -31,7 +31,9 @@ forged. So the on-chain work is **two forward NTTs** and a pointwise comparison.
 
 **Direct.** No hint is supplied. The verifier computes `s1 * h` itself, on-chain, as
 `INTT(NTT(s1) . h_ntt)` — **one forward NTT and one inverse NTT** (the public key is
-already stored in the NTT domain, so `h` needs no transform). The signature is just the
+already stored in the NTT domain, so `h` needs no transform). The inverse runs on the
+same generated forward graph, between a gather-and-twist and an untwist pass (see the
+[`ntt`](../ntt) crate). The signature is just the
 minimal `s1 || salt` (31 felts), and nothing beyond a standard signature comes from the
 signer.
 
@@ -44,14 +46,16 @@ so the same signer produces both; the hint form only appends `mul_hint`.
 |---|---|---|
 | Signature size | 60 felts (`s1 \|\| salt \|\| mul_hint`) | 31 felts (`s1 \|\| salt`) |
 | Signer emits `s1 * h`? | yes (the hint) | no |
-| On-chain transforms | 2 forward NTTs | 1 NTT + 1 INTT |
+| On-chain transforms | 2 forward NTTs | 1 NTT + 1 INTT (on the forward graph) |
 | Input trust surface | larger (an extra signer-supplied value, checked on-chain) | minimal (just `s1`) |
-| On-chain cost | lower | higher (see below) |
+| On-chain cost | lowest | about 1% higher (see below) |
 
-**Cost.** Computing the product on-chain (direct) costs more than checking a supplied one
-(hint). The premium is a fixed amount of transform work — **10,196,120 additional L2 gas
-and 100,927 additional steps** on bare verify — independent of the hash-to-point, which is
-**+20.3% gas / +32.3% steps** over the SHAKE-256 hint verifier. Exact figures are in the
+**Cost.** Both variants run two passes of the same generated forward graph, so their
+costs are close. The direct variant replaces the hint's pointwise check and its
+29-felt unpack with the inverse's gather-and-twist and untwist passes: **532,470
+additional L2 gas and 5,608 additional steps** on bare verify (+1.1% gas, +1.8% steps),
+and **481,560 additional L2 gas** inside `__validate__` (+0.9%), where its shorter
+signature also costs less to deserialize. Exact figures are in the
 [efficiency table](README.md#current-efficiency).
 
 ## What it does not affect

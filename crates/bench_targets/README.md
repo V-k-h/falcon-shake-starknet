@@ -32,4 +32,4 @@ and the executed calls.
 |---|---|--:|--:|
 | `EcdsaStarkAccount` | inside `__validate__` | 160,795 | 1,437 |
 | `Falcon512ShakeAccount` (hint) | inside `__validate__` | 51,733,728 | 327,157 |
-| `Falcon512ShakeDirectAccount` (direct) | inside `__validate__` | 61,878,938 | 427,598 |
+| `Falcon512ShakeDirectAccount` (direct) | inside `__validate__` | 52,215,288 | 332,279 |

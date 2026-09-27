@@ -136,3 +136,45 @@ fn test_falcon_512_shake_direct_rejects_oversized_salt() {
     assert!(!Falcon512ShakeDirectVerifier::verify(msg(), public_key().span(), oversized_a.span()));
     assert!(!Falcon512ShakeDirectVerifier::verify(msg(), public_key().span(), oversized_b.span()));
 }
+
+#[test]
+fn test_falcon_512_shake_direct_rejects_tampered_salt() {
+    // Exercises the SHAKE-256 hash-to-point over the direct core.
+    let sig = signature_direct();
+    let tampered = with_felt_replaced(sig.span(), 29, *sig.span().at(29) + 1);
+    assert!(!Falcon512ShakeDirectVerifier::verify(msg(), public_key().span(), tampered.span()));
+}
+
+#[test]
+fn test_falcon_512_shake_direct_rejects_tampered_s1() {
+    let sig = signature_direct();
+    // Swap two canonical s1 felts: still unpacks, but the signature no longer matches.
+    let a = *sig.span().at(0);
+    let b = *sig.span().at(1);
+    let swapped = with_felt_replaced(with_felt_replaced(sig.span(), 0, b).span(), 1, a);
+    assert!(!Falcon512ShakeDirectVerifier::verify(msg(), public_key().span(), swapped.span()));
+    // Smallest change: one packed s1 felt off by one.
+    let nudged = with_felt_replaced(sig.span(), 7, *sig.span().at(7) + 1);
+    assert!(!Falcon512ShakeDirectVerifier::verify(msg(), public_key().span(), nudged.span()));
+}
+
+#[test]
+fn test_falcon_512_shake_direct_rejects_bad_lengths() {
+    let pk = public_key();
+    let sig = signature_direct();
+    assert!(!Falcon512ShakeDirectVerifier::verify(msg(), pk.span().slice(0, 28), sig.span()));
+    assert!(!Falcon512ShakeDirectVerifier::verify(msg(), pk.span(), sig.span().slice(0, 30)));
+    // The 60-felt hint layout is not a direct signature.
+    assert!(!Falcon512ShakeDirectVerifier::verify(msg(), pk.span(), signature().span()));
+}
+
+#[test]
+fn test_falcon_512_shake_rejects_other_public_key() {
+    // Swap two canonical public-key felts: still unpacks, but it is a different key.
+    let pk = public_key();
+    let a = *pk.span().at(3);
+    let b = *pk.span().at(4);
+    let other = with_felt_replaced(with_felt_replaced(pk.span(), 3, b).span(), 4, a);
+    assert!(!Falcon512ShakeVerifier::verify(msg(), other.span(), signature().span()));
+    assert!(!Falcon512ShakeDirectVerifier::verify(msg(), other.span(), signature_direct().span()));
+}

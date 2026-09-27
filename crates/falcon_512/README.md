@@ -14,8 +14,10 @@ representation. Both variants share the 29-felt NTT-domain public key:
   signer-supplied `s1*h` pointwise, then a fused pass accumulates the centered norm. The
   signature is 60 felts (`s1 || salt || mul_hint`).
 - **direct** (`Falcon512ShakeDirectVerifier`): `s1*h` is computed on-chain from `s1` and
-  the NTT-domain key alone. The signature is the 31-felt `s1 || salt` prefix of the hint
-  signature, so it carries nothing beyond a bare Falcon signature.
+  the NTT-domain key alone, with one generated forward transform of `s1` and the
+  forward-graph inverse `intt_product_falcon512_fast_u16`. The signature is the 31-felt
+  `s1 || salt` prefix of the hint signature, so it carries nothing beyond a bare Falcon
+  signature.
 
 The SHAKE-256 hash-to-point is interoperable with any standards-compliant Falcon signer
 (e.g. falcon.py). Its pure-Cairo Keccak-f[1600] (flat unrolled rounds over u128 lanes,
@@ -35,4 +37,4 @@ References: [Falcon spec](https://falcon-sign.info/falcon.pdf) ·
 | Measurement | L2 gas | Steps |
 |---|--:|--:|
 | verify, SHAKE-256 hint variant | 50,163,668 | 312,892 |
-| verify, SHAKE-256 direct variant | 60,359,788 | 413,819 |
+| verify, SHAKE-256 direct variant | 50,696,138 | 318,500 |

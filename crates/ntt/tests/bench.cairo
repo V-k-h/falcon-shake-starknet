@@ -5,7 +5,10 @@
 
 use pqbench_ntt::engine::{intt, ntt, ntt_lazy};
 use pqbench_ntt::falcon512::{REDUCED_BITS, config};
-use pqbench_ntt::{ntt_falcon512_fast_u16_unchecked, ntt_falcon512_fast_unchecked};
+use pqbench_ntt::{
+    intt_falcon512_fast_u16, intt_product_falcon512_fast_u16, ntt_falcon512_fast_u16_unchecked,
+    ntt_falcon512_fast_unchecked,
+};
 
 fn pseudorandom_felts(seed: u64, n: u32) -> Array<felt252> {
     let mut f: Array<felt252> = array![];
@@ -92,3 +95,36 @@ fn bench_ntt_roundtrip_512() {
     let back = intt(out.span(), REDUCED_BITS, 12289, @cfg);
     assert!(back.len() == 512);
 }
+
+/// Builds the evaluation vector for the fixed-parameter inverse but does NOT invert it.
+#[test]
+fn bench_ntt_falcon512_inverse_u16_base_512() {
+    let f_ntt = pseudorandom_u16(2, 512);
+    assert!(f_ntt.len() == 512);
+}
+
+/// One Falcon-512 inverse transform through the generated forward graph.
+#[test]
+fn bench_ntt_falcon512_inverse_u16_512() {
+    let f_ntt = pseudorandom_u16(2, 512);
+    let out = intt_falcon512_fast_u16(f_ntt.span());
+    assert!(out.len() == 512);
+}
+
+/// Builds both evaluation vectors for the fused product inverse but does NOT invert.
+#[test]
+fn bench_ntt_falcon512_inverse_product_u16_base_512() {
+    let a_ntt = pseudorandom_u16(3, 512);
+    let b_ntt = pseudorandom_u16(4, 512);
+    assert!(a_ntt.len() == 512 && b_ntt.len() == 512);
+}
+
+/// One fused `INTT(a_ntt ∘ b_ntt)` through the generated forward graph.
+#[test]
+fn bench_ntt_falcon512_inverse_product_u16_512() {
+    let a_ntt = pseudorandom_u16(3, 512);
+    let b_ntt = pseudorandom_u16(4, 512);
+    let out = intt_product_falcon512_fast_u16(a_ntt.span(), b_ntt.span());
+    assert!(out.len() == 512);
+}
+

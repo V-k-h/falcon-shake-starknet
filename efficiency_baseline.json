@@ -33,6 +33,20 @@
       "l2_gas": 2137010,
       "steps": 15635
     },
+    "ntt_falcon512_inverse_u16_512": {
+      "package": "pqbench_ntt",
+      "test": "bench_ntt_falcon512_inverse_u16_512",
+      "baseline": "bench_ntt_falcon512_inverse_u16_base_512",
+      "l2_gas": 4538050,
+      "steps": 36641
+    },
+    "ntt_falcon512_inverse_product_u16_512": {
+      "package": "pqbench_ntt",
+      "test": "bench_ntt_falcon512_inverse_product_u16_512",
+      "baseline": "bench_ntt_falcon512_inverse_product_u16_base_512",
+      "l2_gas": 4990090,
+      "steps": 40803
+    },
     "ntt_roundtrip_512": {
       "package": "pqbench_ntt",
       "test": "bench_ntt_roundtrip_512",
@@ -65,8 +79,8 @@
       "package": "pqbench_falcon_512",
       "test": "bench_verify_falcon_512_shake_direct",
       "baseline": "bench_baseline_falcon_512_shake_direct",
-      "l2_gas": 60359788,
-      "steps": 413819
+      "l2_gas": 50696138,
+      "steps": 318500
     },
     "falcon_512_shake_validate": {
       "package": "pqbench_targets",
@@ -79,8 +93,8 @@
       "package": "pqbench_targets",
       "test": "bench_validate_falcon_512_shake_direct",
       "baseline": "bench_validate_base_falcon_512_shake_direct",
-      "l2_gas": 61878938,
-      "steps": 427598
+      "l2_gas": 52215288,
+      "steps": 332279
     }
   }
 }

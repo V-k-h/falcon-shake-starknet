@@ -15,14 +15,21 @@
 //! the engine. [`falcon512_fast::ntt_falcon512_fast_unchecked`] is the generated,
 //! fixed-parameter forward path for callers that already hold canonical Falcon-512
 //! coefficients. Its name makes the unchecked `[0, q)` input precondition explicit.
+//! [`falcon512_inverse::intt_falcon512_fast_u16`] and
+//! [`falcon512_inverse::intt_product_falcon512_fast_u16`] compute the Falcon-512 inverse
+//! with that same forward graph, between generated position and twist tables, and accept
+//! any `u16` input read modulo q.
 
 pub mod bitrev;
 pub mod engine;
 pub mod falcon512;
 pub mod falcon512_fast;
+pub mod falcon512_inverse;
+mod falcon512_inverse_tables;
 pub mod roots;
 pub mod roots_felt;
 pub mod roots_scaled;
 
 pub use engine::{NttConfig, intt, ntt, ntt_lazy, reduce_felt};
 pub use falcon512_fast::{ntt_falcon512_fast_u16_unchecked, ntt_falcon512_fast_unchecked};
+pub use falcon512_inverse::{intt_falcon512_fast_u16, intt_product_falcon512_fast_u16};

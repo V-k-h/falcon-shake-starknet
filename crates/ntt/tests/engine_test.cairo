@@ -12,7 +12,10 @@ use pqbench_ntt::falcon512::{
     PRODUCT_BITS, PRODUCT_BOUND_FELT, Q, REDUCED_BITS, config, config_for_degree,
 };
 use pqbench_ntt::roots::{get_even_roots, get_even_roots_inv};
-use pqbench_ntt::{ntt_falcon512_fast_u16_unchecked, ntt_falcon512_fast_unchecked};
+use pqbench_ntt::{
+    intt_falcon512_fast_u16, intt_product_falcon512_fast_u16, ntt_falcon512_fast_u16_unchecked,
+    ntt_falcon512_fast_unchecked,
+};
 
 // --- Recursive oracle (test-local reference implementation) ---
 
@@ -392,3 +395,161 @@ fn test_lazy_products_match_reduced_products() {
     let expect = oracle_intt(reduced.span());
     assert_felts_eq_u16(got.span(), expect);
 }
+
+// --- The Falcon-512 inverse computed with the generated forward transform ---
+
+fn constant_u16(value: u16) -> Array<u16> {
+    let mut f: Array<u16> = array![];
+    for _ in 0_u32..512 {
+        f.append(value);
+    }
+    f
+}
+
+fn assert_u16_eq(got: Span<u16>, expect: Span<u16>) {
+    assert_eq!(got.len(), expect.len());
+    assert_eq!(got, expect);
+}
+
+/// `values` with every entry reduced modulo q.
+fn reduced(mut values: Span<u16>) -> Array<u16> {
+    let mut out: Array<u16> = array![];
+    while let Some(v) = values.pop_front() {
+        out.append(*v % Q);
+    }
+    out
+}
+
+/// Pointwise `a * b mod q`.
+fn pointwise(mut a: Span<u16>, mut b: Span<u16>) -> Array<u16> {
+    let mut out: Array<u16> = array![];
+    while let Some(x) = a.pop_front() {
+        out.append(mul_mod(*x % Q, *b.pop_front().unwrap() % Q));
+    }
+    out
+}
+
+/// The fast inverse agrees with the recursive oracle and the generic engine on arbitrary
+/// evaluation vectors.
+#[test]
+fn test_falcon512_fast_inverse_matches_oracle_and_engine() {
+    let cfg = config();
+    let mut seed: u64 = 41;
+    while seed != 44 {
+        let f_ntt = pseudorandom(seed, 512);
+        let expected = oracle_intt(f_ntt.span());
+        let got = intt_falcon512_fast_u16(f_ntt.span());
+        assert_u16_eq(got.span(), expected);
+        let engine = intt(to_felts(f_ntt.span()).span(), REDUCED_BITS, 12289, @cfg);
+        assert_felts_eq_u16(engine.span(), got.span());
+        seed += 1;
+    }
+}
+
+/// `INTT(NTT(f)) = f` through the generated forward transform, on pseudorandom, zero,
+/// delta, ramp, and all-(q - 1) inputs.
+#[test]
+fn test_falcon512_fast_inverse_roundtrip() {
+    let mut inputs: Array<Array<u16>> = array![
+        pseudorandom(51, 512), pseudorandom(52, 512), constant_u16(0), constant_u16(Q - 1),
+    ];
+    let mut delta: Array<u16> = array![1];
+    let mut ramp: Array<u16> = array![];
+    for i in 0_u16..512 {
+        if i != 0 {
+            delta.append(0);
+        }
+        ramp.append(i + 1);
+    }
+    inputs.append(delta);
+    inputs.append(ramp);
+    let mut iter = inputs.span();
+    while let Some(f) = iter.pop_front() {
+        let f_ntt = ntt_falcon512_fast_u16_unchecked(f.span());
+        assert_u16_eq(intt_falcon512_fast_u16(f_ntt.span()).span(), f.span());
+    }
+}
+
+/// Non-canonical `u16` inputs are read modulo q: the result equals the inverse of the
+/// reduced input, including the maximal value 2^16 - 1.
+#[test]
+fn test_falcon512_fast_inverse_reads_inputs_mod_q() {
+    let base = pseudorandom(61, 512);
+    let mut shifted: Array<u16> = array![];
+    let mut iter = base.span();
+    while let Some(v) = iter.pop_front() {
+        // v + 4q stays below 2^16 for every v < q.
+        shifted.append(*v + 4 * Q);
+    }
+    assert_u16_eq(
+        intt_falcon512_fast_u16(shifted.span()).span(), intt_falcon512_fast_u16(base.span()).span(),
+    );
+    let max = constant_u16(65535);
+    assert_u16_eq(
+        intt_falcon512_fast_u16(max.span()).span(), oracle_intt(reduced(max.span()).span()),
+    );
+}
+
+/// The fused product inverse equals the oracle inverse of the reduced pointwise product,
+/// and the engine's lazy-product inverse, on pseudorandom, worst-case, and maximal inputs.
+#[test]
+fn test_falcon512_fast_inverse_product_matches_oracle_and_engine() {
+    let cfg = config();
+    let mut pairs: Array<(Array<u16>, Array<u16>)> = array![
+        (pseudorandom(71, 512), pseudorandom(72, 512)),
+        (pseudorandom(73, 512), pseudorandom(74, 512)), (constant_u16(Q - 1), constant_u16(Q - 1)),
+        (constant_u16(65535), constant_u16(65535)), (pseudorandom(75, 512), constant_u16(65535)),
+    ];
+    while let Some((a, b)) = pairs.pop_front() {
+        let got = intt_product_falcon512_fast_u16(a.span(), b.span());
+        let expected = oracle_intt(pointwise(a.span(), b.span()).span());
+        assert_u16_eq(got.span(), expected);
+    }
+    let a = pseudorandom(76, 512);
+    let b = pseudorandom(77, 512);
+    let mut lazy: Array<felt252> = array![];
+    let mut ai = a.span();
+    let mut bi = b.span();
+    while let Some(x) = ai.pop_front() {
+        let y: felt252 = (*bi.pop_front().unwrap()).into();
+        let xf: felt252 = (*x).into();
+        lazy.append(xf * y);
+    }
+    let engine = intt(lazy.span(), PRODUCT_BITS, PRODUCT_BOUND_FELT, @cfg);
+    assert_felts_eq_u16(engine.span(), intt_product_falcon512_fast_u16(a.span(), b.span()).span());
+}
+
+/// x · x^511 = x^512 ≡ -1 (mod x^512 + 1) through forward transforms and the fused
+/// product inverse.
+#[test]
+fn test_falcon512_fast_inverse_product_negacyclic_wrap() {
+    let mut x: Array<u16> = array![0, 1];
+    let mut x511: Array<u16> = array![];
+    for _ in 2_u32..512 {
+        x.append(0);
+    }
+    for _ in 0_u32..511 {
+        x511.append(0);
+    }
+    x511.append(1);
+    let x_ntt = ntt_falcon512_fast_u16_unchecked(x.span());
+    let x511_ntt = ntt_falcon512_fast_u16_unchecked(x511.span());
+    let mut res = intt_product_falcon512_fast_u16(x_ntt.span(), x511_ntt.span()).span();
+    assert_eq!(*res.pop_front().unwrap(), Q - 1);
+    while let Some(c) = res.pop_front() {
+        assert_eq!(*c, 0);
+    }
+}
+
+#[test]
+#[should_panic(expected: 'fast INTT: bad length')]
+fn test_falcon512_fast_inverse_rejects_short_input() {
+    intt_falcon512_fast_u16(pseudorandom(81, 511).span());
+}
+
+#[test]
+#[should_panic(expected: 'fast INTT: bad length')]
+fn test_falcon512_fast_inverse_product_rejects_mismatched_lengths() {
+    intt_product_falcon512_fast_u16(pseudorandom(82, 512).span(), pseudorandom(83, 511).span());
+}
+
