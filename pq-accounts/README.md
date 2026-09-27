@@ -16,5 +16,8 @@ constructor and validate `tx_info.signature` against `tx_info.transaction_hash` 
 standard SHAKE-256 hash-to-point, so any standards-compliant Falcon-512 signer can produce
 their signatures. Signing is off-chain; this repository ships no key material.
 
+The contracts compile against Starknet's audited libfunc list, the list a network
+enforces when a class is declared, and the build fails on any libfunc outside it.
+
 The benchmark accounts under `crates/bench_targets` remain measurement harnesses. The
 contracts here are the accounts intended for on-chain interaction.

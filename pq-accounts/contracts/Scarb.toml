@@ -13,7 +13,8 @@ pqbench_ecdsa_stark = { path = "../../crates/ecdsa_stark" }
 pqbench_falcon_512 = { path = "../../crates/falcon_512" }
 
 [[target.starknet-contract]]
-allowed-libfuncs-list.name = "experimental"
+allowed-libfuncs-list.name = "audited"
+allowed-libfuncs-deny = true
 sierra = true
 casm = true
 
