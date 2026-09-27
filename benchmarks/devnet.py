@@ -7,10 +7,10 @@ protocol's validation limits are enforced:
 
 1. Start a fresh devnet and import its predeployed account into a private accounts
    file under `benchmarks/.work` (never the user's sncast accounts file).
-2. Declare and deploy both Falcon accounts with a fresh falcon.py public key, and mint
-   them STRK.
-3. Build an INVOKE v3 transaction (one STRK transfer) from each Falcon account, compute
-   its hash, sign it with falcon.py, and submit it over JSON-RPC.
+2. Declare and deploy both Falcon accounts with a fresh public key, and mint them STRK.
+3. Build INVOKE v3 transactions (one STRK transfer each) from each Falcon account, compute
+   their hashes, sign them with the PQClean signer in signer/ (or falcon.py with
+   `--signer falconpy`), and submit them over JSON-RPC.
 4. Record the receipt and the trace: fee, the transaction's L2 gas and L1 data gas, and
    the resources of the `__validate__` and `__execute__` invocations.
 5. Submit the same transaction with a signature over a different hash, which must be
@@ -19,12 +19,12 @@ protocol's validation limits are enforced:
 The transaction-hash code is checked against a transaction that sncast itself sent, so a
 hash bug cannot pass silently.
 
-Usage (needs the toolchain in .tool-versions, including starknet-devnet, and a falcon.py
-clone with numpy, pycryptodome and beartype):
-    python3 benchmarks/devnet.py --falcon-py /path/to/falcon.py
+Usage (needs the toolchain in .tool-versions, including starknet-devnet, and cargo):
+    python3 benchmarks/devnet.py
     # With a devnet built from source with devnet-sierra-version.patch applied:
-    python3 benchmarks/devnet.py --falcon-py /path/to/falcon.py \
-        --devnet /path/to/patched/starknet-devnet --out benchmarks/devnet-fixed.json
+    python3 benchmarks/devnet.py --devnet /path/to/patched/starknet-devnet --out benchmarks/devnet-fixed.json
+    # Signing with falcon.py instead (needs numpy, pycryptodome and beartype):
+    python3 benchmarks/devnet.py --signer falconpy --falcon-py /path/to/falcon.py
 """
 
 import argparse
@@ -52,6 +52,8 @@ PORT = 5055
 URL = f"http://127.0.0.1:{PORT}"
 STRK = 0x04718F5A0FC34CC1AF16A1CDEE98FFB20C31F5CD61D6AB07201858F4287C938D
 STARK_PRIME = 2**251 + 17 * 2**192 + 1
+# sn_keccak("transfer"): the low 250 bits of keccak-256 of the entry-point name.
+TRANSFER_SELECTOR = 0x83AFD3F4CAEDC6EEBF44246FE54E38C95E3179A5EC9EA81740ECA5B482D12E
 INVOKE_PREFIX = int.from_bytes(b"invoke", "big")
 poseidon = gen_account_fixture.poseidon_hash_span
 
@@ -69,13 +71,6 @@ def rpc(method, params=None):
     if "error" in out:
         raise RuntimeError(json.dumps(out["error"]))
     return out["result"]
-
-
-def sn_keccak(name: str) -> int:
-    from Crypto.Hash import keccak
-
-    digest = keccak.new(digest_bits=256, data=name.encode()).digest()
-    return int.from_bytes(digest, "big") & ((1 << 250) - 1)
 
 
 def resource_bound(name: bytes, bound: dict) -> int:
@@ -166,7 +161,7 @@ def gas_bounds() -> dict:
 
 def transfer_calldata(recipient: int, amount: int) -> list[str]:
     # __execute__(calls: Array<Call>): one call to STRK.transfer(recipient, amount: u256).
-    return [hex(v) for v in (1, STRK, sn_keccak("transfer"), 3, recipient, amount, 0)]
+    return [hex(v) for v in (1, STRK, TRANSFER_SELECTOR, 3, recipient, amount, 0)]
 
 
 def summarize_trace(trace: dict) -> dict:
@@ -186,18 +181,35 @@ def summarize_trace(trace: dict) -> dict:
     return out
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--falcon-py", type=Path, required=True)
-    parser.add_argument("--devnet", default="starknet-devnet", help="starknet-devnet binary to run")
-    parser.add_argument("--out", type=Path, default=HERE / "devnet-stock.json")
-    args = parser.parse_args()
-    if shutil.which(args.devnet) is None:
-        sys.exit(f"{args.devnet} not found; install the starknet-devnet version in .tool-versions")
+def pqclean_signer():
+    """Keys and signatures from the PQClean-based signer in signer/."""
+    subprocess.run(["cargo", "build", "--release", "--quiet", "--manifest-path", str(REPO / "signer" / "Cargo.toml")],
+                   check=True)
+    binary = str(REPO / "signer" / "target" / "release" / "falcon-signer")
+    key = str(WORK / "key.json")
 
-    sys.path.insert(0, str(args.falcon_py))
+    def call(*args):
+        return json.loads(subprocess.run([binary, *args], check=True, capture_output=True, text=True).stdout)
+
+    public_key = [int(v, 16) for v in call("keygen", "--out", key)["public_key"]]
+
+    def sign(message_hash: int, blocks: int | None = None) -> list[int]:
+        """Sign `message_hash`; PQClean draws a fresh salt per call, so retry until the
+        hash-to-point needs `blocks` blocks."""
+        while True:
+            out = call("sign", "--key", key, "--hash", hex(message_hash))
+            if blocks is None or out["blocks"] == blocks:
+                return [int(v, 16) for v in out["signature"]]
+
+    return public_key, sign
+
+
+def falconpy_signer(falcon_py: Path):
+    """Keys and signatures from the falcon.py reference sampler."""
+    sys.path.insert(0, str(falcon_py))
     import falcon as fpy  # noqa: E402
     from ntt import div_zq, mul_zq, ntt  # noqa: E402
+    from signatures import blocks_needed  # noqa: E402
 
     scheme = fpy.Falcon(512)
     sk, _ = scheme.keygen()
@@ -205,8 +217,6 @@ def main() -> None:
     h_ntt = ntt(h)
     mods = (scheme, mul_zq, ntt)
     public_key = gen_falcon_fixture.pack_512(h_ntt)
-
-    from signatures import blocks_needed  # noqa: E402
 
     def sign(message_hash: int, blocks: int | None = None) -> list[int]:
         """Sign `message_hash`, drawing salts until the hash-to-point needs `blocks` blocks."""
@@ -220,15 +230,32 @@ def main() -> None:
         assert pk == public_key
         return signature
 
+    return public_key, sign
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--signer", choices=["pqclean", "falconpy"], default="pqclean")
+    parser.add_argument("--falcon-py", type=Path, help="tprest/falcon.py clone, for --signer falconpy")
+    parser.add_argument("--devnet", default="starknet-devnet", help="starknet-devnet binary to run")
+    parser.add_argument("--out", type=Path, default=HERE / "devnet-stock.json")
+    args = parser.parse_args()
+    if shutil.which(args.devnet) is None:
+        sys.exit(f"{args.devnet} not found; install the starknet-devnet version in .tool-versions")
+    if args.signer == "falconpy" and not args.falcon_py:
+        sys.exit("--signer falconpy needs --falcon-py")
+
     if WORK.exists():
         shutil.rmtree(WORK)
     WORK.mkdir(parents=True)
+    public_key, sign = pqclean_signer() if args.signer == "pqclean" else falconpy_signer(args.falcon_py)
     devnet = start_devnet(args.devnet)
     try:
         result = run(public_key, sign, args.devnet)
     finally:
         devnet.terminate()
         devnet.wait(timeout=30)
+    result["metadata"]["signer"] = args.signer
     args.out.write_text(json.dumps(result, indent=1) + "\n")
     print(json.dumps(result, indent=1))
 

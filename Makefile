@@ -31,11 +31,9 @@ compare:
 sweep:
 	python3 benchmarks/signatures.py
 
-# Real Falcon-signed transactions on a local starknet-devnet. Needs FALCON_PY=<falcon.py clone>
-# and a PYTHON with its dependencies (numpy, pycryptodome, beartype).
-PYTHON ?= python3
+# Real transactions, signed by signer/ (PQClean), on a local starknet-devnet.
 devnet:
-	$(PYTHON) benchmarks/devnet.py --falcon-py $(FALCON_PY)
+	python3 benchmarks/devnet.py
 
 clean:
 	rm -rf target snfoundry_trace crates/*/snfoundry_trace

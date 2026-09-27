@@ -7,7 +7,7 @@ a real transaction costs when it goes through the sequencer's execution engine.
 | Script | Make target | Output |
 |---|---|---|
 | `signatures.py` | `make sweep` | `signatures-results.json` |
-| `devnet.py` | `make devnet FALCON_PY=/path/to/falcon.py PYTHON=<python with its deps>` | `devnet-stock.json`; `devnet-fixed.json` with `--devnet` pointing at a patched build |
+| `devnet.py` | `make devnet` | `devnet-stock.json`; `devnet-fixed.json` with `--devnet` pointing at a patched build |
 
 Both clone or build against this repository's HEAD and use the toolchain in
 `.tool-versions`; checkouts and logs go to `benchmarks/.work/` (git-ignored).
@@ -57,12 +57,15 @@ about as much as a passing one; that is the cost the protocol's validation caps 
 
 ## End-to-end transactions on starknet-devnet
 
-`devnet.py` starts a fresh devnet, declares and deploys both accounts with a new falcon.py
-key, then submits a real INVOKE v3 transaction from each: one STRK transfer, its hash
-computed in Python and checked against a transaction sncast sent, signed with falcon.py,
-and executed by blockifier with the protocol's validation limits in force. It also submits
-the same transaction signed over a different hash, which must be rejected, and sends the
-same transfer from devnet's predeployed ECDSA account as a baseline.
+`devnet.py` starts a fresh devnet, declares and deploys both accounts with a new key from
+the PQClean signer in [`signer/`](../signer), then submits real INVOKE v3 transactions from
+each: one STRK transfer per transaction, its hash computed in Python and checked against a
+transaction sncast sent, signed by PQClean, and executed by blockifier with the protocol's
+validation limits in force. Each account sends one transaction whose hash-to-point needs 8
+blocks and one that needs 9. It also submits a transaction signed over a different hash,
+which must be rejected, and sends the same transfer from devnet's predeployed ECDSA account
+as a baseline. (`--signer falconpy` signs with falcon.py instead; the costs agree to within
+0.03M L2 gas.)
 
 Run on two devnets: the released starknet-devnet 0.9.0 (the version in `.tool-versions`)
 and the same version with `devnet-sierra-version.patch` applied.
@@ -82,7 +85,7 @@ units per Falcon transaction, adds under 0.00001 STRK):
 
 | Transaction | 8-block salt | 9-block salt |
 |---|--:|--:|
-| Falcon hint account, one STRK transfer | 46.78M L2 gas, 0.582 STRK | 50.89M L2 gas, 0.633 STRK |
+| Falcon hint account, one STRK transfer | 46.80M L2 gas, 0.582 STRK | 50.86M L2 gas, 0.633 STRK |
 | Falcon direct account, one STRK transfer | 47.70M L2 gas, 0.594 STRK | 51.75M L2 gas, 0.644 STRK |
 | Predeployed ECDSA account, same transfer | 1.41M L2 gas, 0.018 STRK | |
 
@@ -110,11 +113,15 @@ legacy model; the code is unchanged on devnet's main branch. `devnet-sierra-vers
 reads the version from the program header with `SierraVersion::extract_from_program`.
 With it, the receipts match snforge's Sierra-gas measurements.
 
-Read from blockifier's source, a live network applies the same rule with the correct
-version, so these accounts' own `__validate__` should be billed in Sierra gas, as on the
-patched devnet; a transaction on Sepolia would confirm it. Under the legacy model the
-binding validation limit would be the 1,000,000-step cap, at 31% here, rather than the
-100M gas cap, and the fee would be about 2.7 times higher.
+A live network applies the same rule with the correct version. On Sepolia (Starknet
+0.14.4), recent transactions from a Sierra 1.9.0 account class have `__validate__` billed at
+77,795 and 85,925 L2 gas, not multiples of 40,000, so a top-level `__validate__` in a Sierra
+1.7+ class is billed in Sierra gas there. These accounts are Sierra 1.8.0, so their
+`__validate__` should cost on Sepolia and mainnet what the patched devnet shows. A
+transaction from these accounts on Sepolia would measure it directly, but needs the class
+declared first (see below). Under the legacy model the binding validation limit would be
+the 1,000,000-step cap, at 31% here, rather than the 100M gas cap, and the fee would be
+about 2.7 times higher.
 
 ### A separately deployed verifier can still be billed the legacy way
 
@@ -124,3 +131,10 @@ gas in exactly that way, a multiple of 40,000, because the account that called i
 Sierra 1.5.0 class. These accounts verify inside their own `__validate__`, a top-level
 call, so they are not exposed to this. A verifier deployed as a library contract and
 called from an older account would be.
+
+### Declaring the account class
+
+Declaring the hint account class on the patched devnet used 4.05B L2 gas: about 50 STRK at
+the Sepolia and mainnet L2 gas prices of 2026-10-16. Declaration happens once per class and
+every account of that class is then deployed cheaply, so it is not a per-user cost, but it
+grows with the class size (48,988 CASM felts here, most of it the generated NTT).
