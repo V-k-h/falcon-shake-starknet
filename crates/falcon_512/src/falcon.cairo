@@ -341,8 +341,38 @@ mod tests {
     use crate::packing::unpack_512_u16;
     use crate::zq::add_mod;
     use super::{
-        verify_512_direct, verify_512_direct_u16, verify_512_with_hint, verify_512_with_hint_u16,
+        canonical, canonical_coefficients, is_canonical_point, verify_512_direct,
+        verify_512_direct_u16, verify_512_with_hint, verify_512_with_hint_u16,
     };
+
+    /// The input checks accept exactly `[0, Q)`: both ends of the range pass, everything
+    /// past it fails, for felts and for the `u16` message point.
+    #[test]
+    fn test_input_checks_accept_exactly_zero_to_q_minus_one() {
+        assert_eq!(canonical(0), Some(0));
+        assert_eq!(canonical(12288), Some(12288));
+        assert_eq!(canonical(12289), None);
+        assert_eq!(canonical(0x10000), None);
+        assert_eq!(canonical(-1), None);
+
+        let mut low: Array<felt252> = array![];
+        let mut high: Array<felt252> = array![];
+        let mut low_point: Array<u16> = array![];
+        let mut high_point: Array<u16> = array![];
+        for _ in 0..512_u32 {
+            low.append(0);
+            high.append(12288);
+            low_point.append(0);
+            high_point.append(12288);
+        }
+        assert!(canonical_coefficients(low.span()).is_some());
+        assert!(canonical_coefficients(high.span()).unwrap().span() == high_point.span());
+        assert!(is_canonical_point(low_point.span()));
+        assert!(is_canonical_point(high_point.span()));
+        high_point.append(12288);
+        assert!(!is_canonical_point(high_point.span()));
+        assert!(canonical_coefficients(high.span().slice(0, 511)).is_none());
+    }
 
     fn to_u16(mut vals: Span<felt252>) -> Array<u16> {
         let mut out: Array<u16> = array![];
