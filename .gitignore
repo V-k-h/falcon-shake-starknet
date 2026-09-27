@@ -1,0 +1,13 @@
+# starknet
+target/
+.snfoundry_cache/
+snfoundry_trace/
+*.pb.gz
+
+# python
+__pycache__/
+.venv/
+
+# never commit Falcon key material
+*-key.json
+**/tmp/

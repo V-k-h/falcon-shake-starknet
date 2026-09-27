@@ -1,0 +1,439 @@
+{
+  "metadata": {
+    "generated": "2026-10-16 20:20",
+    "toolchain": {
+      "scarb": "2.18.0",
+      "snforge": "0.59.0",
+      "cairo_profiler": "0.16.0"
+    },
+    "caps": {
+      "validate_max_steps": 1000000,
+      "validate_max_l2_gas": 100000000
+    },
+    "gas_table_l2": {
+      "step": 100,
+      "range_check": 70,
+      "range_check96": 56,
+      "pedersen": 4050,
+      "poseidon": 491,
+      "bitwise": 583,
+      "ecdsa": 10561,
+      "ec_op": 4085,
+      "keccak": 136189,
+      "add_mod": 230,
+      "mul_mod": 604
+    },
+    "l2_gas_per_calldata_felt": 5120,
+    "method": "paired-test subtraction; L2 gas from sierra-gas mode; steps/builtins from cairo-steps mode"
+  },
+  "schemes": [
+    {
+      "key": "ecdsa_stark",
+      "label": "ECDSA-STARK (baseline)",
+      "family": "classical EC",
+      "package": "pqbench_ecdsa_stark",
+      "verify_test": "bench_verify_ecdsa_stark",
+      "baseline_test": "bench_baseline_ecdsa_stark",
+      "validate_test": "bench_validate_ecdsa_stark",
+      "validate_baseline_test": "bench_validate_base_ecdsa_stark",
+      "contract": "EcdsaStarkAccount",
+      "nist_category": "n/a (not PQ)",
+      "standardized": "n/a",
+      "on_chain_hash": "Pedersen/Poseidon (tx hash)",
+      "offchain_prep": "none",
+      "sig_felts": 2,
+      "pubkey_felts": 1,
+      "implemented": true,
+      "notes": "Classical control. Shor-breakable; not a PQ candidate. Proves the pipeline.",
+      "measured": true,
+      "verify_l2_gas": 30855,
+      "verify_steps": 152,
+      "verify_builtins": {
+        "range_check": 7,
+        "ec_op": 3
+      },
+      "calldata_l2_gas": 15360,
+      "pct_of_gas_cap": 0.0309,
+      "pct_of_step_cap": 0.0152,
+      "fits_gas_cap": true,
+      "fits_step_cap": true,
+      "validate_l2_gas": 160795,
+      "validate_steps": 1437,
+      "validate_pct_of_gas_cap": 0.1608,
+      "validate_pct_of_step_cap": 0.1437,
+      "validate_fits": true,
+      "class_felts": 784,
+      "class_bytes": 20555,
+      "verify_profile": [
+        {
+          "function": "core::ecdsa::check_ecdsa_signature",
+          "flat_steps": 127,
+          "flat_pct": 37.46,
+          "harness": false
+        },
+        {
+          "function": "pqbench_ecdsa_stark_integrationtest::bench::bench_verify_ecdsa_stark",
+          "flat_steps": 109,
+          "flat_pct": 32.15,
+          "harness": false
+        },
+        {
+          "function": "snforge_std::cheatcode::execute_cheatcode_and_deserialize",
+          "flat_steps": 57,
+          "flat_pct": 16.81,
+          "harness": true
+        },
+        {
+          "function": "pqbench_ecdsa_stark_integrationtest::bench::bench_verify_ecdsa_stark__snforge_internal_test_generated",
+          "flat_steps": 26,
+          "flat_pct": 7.67,
+          "harness": true
+        },
+        {
+          "function": "core::result::ResultSerde::deserialize",
+          "flat_steps": 19,
+          "flat_pct": 5.6,
+          "harness": true
+        },
+        {
+          "function": "Contract: SNFORGE_TEST_CODE Function: SNFORGE_TEST_CODE_FUNCTION",
+          "flat_steps": 1,
+          "flat_pct": 0.29,
+          "harness": true
+        }
+      ]
+    },
+    {
+      "key": "falcon_512_shake",
+      "label": "Falcon-512 SHAKE-256 (standard)",
+      "family": "lattice (NTRU)",
+      "package": "pqbench_falcon_512",
+      "verify_test": "bench_verify_falcon_512_shake",
+      "baseline_test": "bench_baseline_falcon_512_shake",
+      "validate_test": "bench_validate_falcon_512_shake",
+      "validate_baseline_test": "bench_validate_base_falcon_512_shake",
+      "contract": "Falcon512ShakeAccount",
+      "nist_category": "1",
+      "standardized": "draft (FIPS 206); standard SHAKE-256 hash-to-point",
+      "on_chain_hash": "SHAKE-256 hash-to-point (on-chain, pure-Cairo Keccak-f[1600])",
+      "offchain_prep": "signer supplies mul hint (s1*h mod q; +29 sig felts)",
+      "sig_felts": 60,
+      "pubkey_felts": 29,
+      "implemented": true,
+      "notes": "Standards-compliant hash-to-point: SHAKE-256 exactly per the Falcon spec, so signatures interoperate with any compliant signer (e.g. falcon.py) without a custom XOF. Same hint-based verify as falcon_512. On-chain cost is dominated by a pure-Cairo Keccak-f[1600] (flat unrolled rounds, lazy squeeze): the bare verifier uses 4.16x the gas and 3.20x the steps of the native-Poseidon variant, while remaining within both validation caps. A native keccak_f1600 syscall (SNIP-32) would close the remaining gap.",
+      "measured": true,
+      "verify_l2_gas": 50163668,
+      "verify_steps": 312892,
+      "verify_builtins": {
+        "range_check": 65952,
+        "bitwise": 21816
+      },
+      "calldata_l2_gas": 455680,
+      "pct_of_gas_cap": 50.1637,
+      "pct_of_step_cap": 31.2892,
+      "fits_gas_cap": true,
+      "fits_step_cap": true,
+      "validate_l2_gas": 51733728,
+      "validate_steps": 327157,
+      "validate_pct_of_gas_cap": 51.7337,
+      "validate_pct_of_step_cap": 32.7157,
+      "validate_fits": true,
+      "class_felts": 50762,
+      "class_bytes": 1966366,
+      "verify_profile": [
+        {
+          "function": "pqbench_falcon_512::hashing::shake256::keccak_f1600[433-3957]{NotSpecialized, NotSpecialized, NonZero(18446744073709551616), }",
+          "flat_steps": 198315,
+          "flat_pct": 63.34,
+          "harness": false
+        },
+        {
+          "function": "pqbench_falcon_512::falcon::verify_512_with_hint_u16[1249-5524]{NotSpecialized, NotSpecialized, NotSpecialized, bool::True({}), NotSpecialized, NotSpecialized, NotSpecialized, NotSpecialized, }",
+          "flat_steps": 33486,
+          "flat_pct": 10.7,
+          "harness": false
+        },
+        {
+          "function": "pqbench_ntt::falcon512_fast::ntt_falcon512_fast_u16_unchecked",
+          "flat_steps": 31260,
+          "flat_pct": 9.98,
+          "harness": false
+        },
+        {
+          "function": "pqbench_falcon_512::hashing::hash_to_point::hash_to_point_shake_512[2975-3102]",
+          "flat_steps": 31251,
+          "flat_pct": 9.98,
+          "harness": false
+        },
+        {
+          "function": "pqbench_falcon_512::packing::unpack_512_u16[399-934]",
+          "flat_steps": 15288,
+          "flat_pct": 4.88,
+          "harness": false
+        },
+        {
+          "function": "pqbench_falcon_512::falcon::verify_512_with_hint_u16[1249-5524]{NotSpecialized, NotSpecialized, NotSpecialized, bool::True({}), NotSpecialized, NotSpecialized, NotSpecialized, 0, }",
+          "flat_steps": 1067,
+          "flat_pct": 0.34,
+          "harness": false
+        },
+        {
+          "function": "pqbench_falcon_512::hashing::hash_to_point::hash_to_point_shake_512[2913-3207]",
+          "flat_steps": 848,
+          "flat_pct": 0.27,
+          "harness": false
+        },
+        {
+          "function": "pqbench_falcon_512::hashing::shake256::keccak_f1600",
+          "flat_steps": 585,
+          "flat_pct": 0.19,
+          "harness": false
+        },
+        {
+          "function": "pqbench_falcon_512::packing::unpack_512_u16",
+          "flat_steps": 363,
+          "flat_pct": 0.12,
+          "harness": false
+        },
+        {
+          "function": "pqbench_falcon_512::hashing::hash_to_point::hash_to_point_shake_512",
+          "flat_steps": 195,
+          "flat_pct": 0.06,
+          "harness": false
+        },
+        {
+          "function": "pqbench_falcon_512::fixtures::shake::signature",
+          "flat_steps": 124,
+          "flat_pct": 0.04,
+          "harness": false
+        },
+        {
+          "function": "pqbench_falcon_512::Falcon512ShakeVerifier::verify",
+          "flat_steps": 97,
+          "flat_pct": 0.03,
+          "harness": false
+        },
+        {
+          "function": "pqbench_falcon_512_integrationtest::bench_shake::bench_verify_falcon_512_shake",
+          "flat_steps": 89,
+          "flat_pct": 0.03,
+          "harness": false
+        },
+        {
+          "function": "pqbench_falcon_512::falcon::verify_512_with_hint_u16",
+          "flat_steps": 57,
+          "flat_pct": 0.02,
+          "harness": false
+        },
+        {
+          "function": "snforge_std::cheatcode::execute_cheatcode_and_deserialize",
+          "flat_steps": 31,
+          "flat_pct": 0.01,
+          "harness": true
+        },
+        {
+          "function": "pqbench_falcon_512_integrationtest::bench_shake::bench_verify_falcon_512_shake__snforge_internal_test_generated",
+          "flat_steps": 23,
+          "flat_pct": 0.01,
+          "harness": true
+        },
+        {
+          "function": "Contract: SNFORGE_TEST_CODE Function: SNFORGE_TEST_CODE_FUNCTION",
+          "flat_steps": 1,
+          "flat_pct": 0.0,
+          "harness": true
+        }
+      ]
+    },
+    {
+      "key": "falcon_512_shake_direct",
+      "label": "Falcon-512 SHAKE-256 direct (standard, no hint)",
+      "family": "lattice (NTRU)",
+      "package": "pqbench_falcon_512",
+      "verify_test": "bench_verify_falcon_512_shake_direct",
+      "baseline_test": "bench_baseline_falcon_512_shake_direct",
+      "validate_test": "bench_validate_falcon_512_shake_direct",
+      "validate_baseline_test": "bench_validate_base_falcon_512_shake_direct",
+      "contract": "Falcon512ShakeDirectAccount",
+      "nist_category": "1",
+      "standardized": "draft (FIPS 206); standard SHAKE-256 hash-to-point",
+      "on_chain_hash": "SHAKE-256 hash-to-point (on-chain, pure-Cairo Keccak-f[1600])",
+      "offchain_prep": "none beyond signing (no hint)",
+      "sig_felts": 31,
+      "pubkey_felts": 29,
+      "implemented": true,
+      "notes": "The closest on-chain match to a bare standard Falcon signature: standard SHAKE-256 hash-to-point with the hint-free direct core (s1*h computed on-chain), so only the 31-felt s1||salt is supplied and the input trust surface is minimal. The FIPS signature carries no hint, so this variant mirrors it most faithfully. The most expensive Falcon variant here (SHAKE hash over the direct core), still within both validation caps.",
+      "measured": true,
+      "verify_l2_gas": 60359788,
+      "verify_steps": 413819,
+      "verify_builtins": {
+        "range_check": 72631,
+        "bitwise": 21816
+      },
+      "calldata_l2_gas": 307200,
+      "pct_of_gas_cap": 60.3598,
+      "pct_of_step_cap": 41.3819,
+      "fits_gas_cap": true,
+      "fits_step_cap": true,
+      "validate_l2_gas": 61878938,
+      "validate_steps": 427598,
+      "validate_pct_of_gas_cap": 61.8789,
+      "validate_pct_of_step_cap": 42.7598,
+      "validate_fits": true,
+      "class_felts": 50546,
+      "class_bytes": 1839913,
+      "verify_profile": [
+        {
+          "function": "pqbench_falcon_512::hashing::shake256::keccak_f1600[433-3957]{NotSpecialized, NotSpecialized, NonZero(18446744073709551616), }",
+          "flat_steps": 198315,
+          "flat_pct": 47.84,
+          "harness": false
+        },
+        {
+          "function": "pqbench_falcon_512::hashing::hash_to_point::hash_to_point_shake_512[2975-3102]",
+          "flat_steps": 31251,
+          "flat_pct": 7.54,
+          "harness": false
+        },
+        {
+          "function": "pqbench_ntt::engine::split_level[519-1227]",
+          "flat_steps": 27756,
+          "flat_pct": 6.7,
+          "harness": false
+        },
+        {
+          "function": "pqbench_falcon_512::falcon::verify_512_direct_u16[2506-4446]",
+          "flat_steps": 22291,
+          "flat_pct": 5.38,
+          "harness": false
+        },
+        {
+          "function": "pqbench_ntt::engine::split_level[1722-1989]",
+          "flat_steps": 21888,
+          "flat_pct": 5.28,
+          "harness": false
+        },
+        {
+          "function": "pqbench_ntt::engine::intt[2487-2689]",
+          "flat_steps": 18958,
+          "flat_pct": 4.57,
+          "harness": false
+        },
+        {
+          "function": "pqbench_ntt::falcon512_fast::ntt_falcon512_fast_u16_unchecked",
+          "flat_steps": 15630,
+          "flat_pct": 3.77,
+          "harness": false
+        },
+        {
+          "function": "pqbench_ntt::engine::split_level[1568-2155]",
+          "flat_steps": 11930,
+          "flat_pct": 2.88,
+          "harness": false
+        },
+        {
+          "function": "pqbench_ntt::engine::split_level[2026-2121]",
+          "flat_steps": 10368,
+          "flat_pct": 2.5,
+          "harness": false
+        },
+        {
+          "function": "pqbench_falcon_512::packing::unpack_512_u16[399-934]",
+          "flat_steps": 10192,
+          "flat_pct": 2.46,
+          "harness": false
+        },
+        {
+          "function": "pqbench_ntt::engine::split_level[1264-1521]",
+          "flat_steps": 9840,
+          "flat_pct": 2.37,
+          "harness": false
+        },
+        {
+          "function": "pqbench_ntt::engine::reduce_pass[256-1385]",
+          "flat_steps": 8720,
+          "flat_pct": 2.1,
+          "harness": false
+        },
+        {
+          "function": "pqbench_ntt::engine::intt[1128-1201]",
+          "flat_steps": 7694,
+          "flat_pct": 1.86,
+          "harness": false
+        },
+        {
+          "function": "pqbench_ntt::engine::intt[2125-2308]",
+          "flat_steps": 7184,
+          "flat_pct": 1.73,
+          "harness": false
+        },
+        {
+          "function": "pqbench_falcon_512::falcon::verify_512_direct_u16[768-2172]",
+          "flat_steps": 4274,
+          "flat_pct": 1.03,
+          "harness": false
+        },
+        {
+          "function": "pqbench_ntt::engine::split_level[365-1555]",
+          "flat_steps": 3984,
+          "flat_pct": 0.96,
+          "harness": false
+        },
+        {
+          "function": "pqbench_falcon_512::hashing::hash_to_point::hash_to_point_shake_512[2913-3207]",
+          "flat_steps": 848,
+          "flat_pct": 0.2,
+          "harness": false
+        },
+        {
+          "function": "pqbench_ntt::engine::intt[1271-1685]",
+          "flat_steps": 743,
+          "flat_pct": 0.18,
+          "harness": false
+        },
+        {
+          "function": "pqbench_falcon_512::hashing::shake256::keccak_f1600",
+          "flat_steps": 585,
+          "flat_pct": 0.14,
+          "harness": false
+        },
+        {
+          "function": "pqbench_falcon_512_integrationtest::bench_shake::signature_direct[228-303]",
+          "flat_steps": 479,
+          "flat_pct": 0.12,
+          "harness": false
+        },
+        {
+          "function": "pqbench_ntt::falcon512::config_with_perm[391-597]{NotSpecialized, NotSpecialized, NotSpecialized, @512, }",
+          "flat_steps": 244,
+          "flat_pct": 0.06,
+          "harness": false
+        },
+        {
+          "function": "pqbench_falcon_512::packing::unpack_512_u16",
+          "flat_steps": 242,
+          "flat_pct": 0.06,
+          "harness": false
+        },
+        {
+          "function": "pqbench_falcon_512::hashing::hash_to_point::hash_to_point_shake_512",
+          "flat_steps": 195,
+          "flat_pct": 0.05,
+          "harness": false
+        },
+        {
+          "function": "pqbench_ntt::roots_felt::get_even_roots_felt",
+          "flat_steps": 152,
+          "flat_pct": 0.04,
+          "harness": false
+        },
+        {
+          "function": "pqbench_ntt::roots_scaled::get_scaled_inv_roots",
+          "flat_steps": 152,
+          "flat_pct": 0.04,
+          "harness": false
+        }
+      ]
+    }
+  ]
+}

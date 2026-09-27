@@ -1,0 +1,35 @@
+# CI: runs the test suite, then the efficiency ratchet. Any PR that raises a tracked cost
+# (L2 gas or Cairo steps of the benchmark pairs pinned in efficiency_baseline.json) fails;
+# improvements should be locked in with `make ratchet` in the same PR.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  ratchet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read toolchain versions
+        id: versions
+        run: |
+          echo "scarb=$(awk '/^scarb /{print $2}' .tool-versions)" >> "$GITHUB_OUTPUT"
+          echo "snforge=$(awk '/^starknet-foundry /{print $2}' .tool-versions)" >> "$GITHUB_OUTPUT"
+
+      - uses: software-mansion/setup-scarb@v1
+        with:
+          scarb-version: ${{ steps.versions.outputs.scarb }}
+
+      - uses: foundry-rs/setup-snfoundry@v5
+        with:
+          starknet-foundry-version: ${{ steps.versions.outputs.snforge }}
+
+      - name: Run tests
+        run: snforge test
+
+      - name: Check efficiency ratchet
+        run: python3 scripts/check_efficiency.py
