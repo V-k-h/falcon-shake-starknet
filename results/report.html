@@ -36,7 +36,7 @@ code { background: #f0f0f0; padding: 1px 5px; border-radius: 4px; font-size: 13p
 </style>
 <div class="wrap">
 <h1>Post-quantum signature verifiers &mdash; Starknet benchmark</h1>
-<p class="sub">Generated 2026-10-16 21:21 &middot; scarb 2.18.0, snforge 0.59.0 &middot; cost of verifying one signature inside an account validation.</p>
+<p class="sub">Generated 2026-10-16 22:51 &middot; scarb 2.18.0, snforge 0.59.0 &middot; cost of verifying one signature inside an account validation.</p>
 <div class="cards">
 <div class="card"><div class="l">Measured</div><div class="v">3</div></div>
 <div class="card"><div class="l">Pending</div><div class="v">0</div></div>
@@ -68,9 +68,9 @@ code { background: #f0f0f0; padding: 1px 5px; border-radius: 4px; font-size: 13p
 <tr><td style="text-align:left" class="mono">pqbench_falcon_512::hashing::shake256::keccak_f1600[433-3957]{NotSpecialized, NotSpecialized, NonZero(18446744073709551616), }</td><td class="mono">198,315</td><td class="mono">66.0%</td></tr>
 <tr><td style="text-align:left" class="mono">pqbench_ntt::falcon512_fast::ntt_falcon512_fast_u16_unchecked</td><td class="mono">31,260</td><td class="mono">10.4%</td></tr>
 <tr><td style="text-align:left" class="mono">pqbench_falcon_512::falcon::verify_512_with_hint_u16[1249-4524]</td><td class="mono">30,938</td><td class="mono">10.3%</td></tr>
-<tr><td style="text-align:left" class="mono">pqbench_falcon_512::hashing::hash_to_point::hash_to_point_shake_512[2784-2967]</td><td class="mono">22,301</td><td class="mono">7.42%</td></tr>
+<tr><td style="text-align:left" class="mono">pqbench_falcon_512::hashing::hash_to_point::hash_to_point_shake_512[2732-2915]</td><td class="mono">22,301</td><td class="mono">7.42%</td></tr>
 <tr><td style="text-align:left" class="mono">pqbench_falcon_512::packing::unpack_512_u16[399-934]</td><td class="mono">15,288</td><td class="mono">5.09%</td></tr>
-<tr><td style="text-align:left" class="mono">pqbench_falcon_512::hashing::hash_to_point::hash_to_point_shake_512[2722-3072]</td><td class="mono">797</td><td class="mono">0.27%</td></tr>
+<tr><td style="text-align:left" class="mono">pqbench_falcon_512::hashing::hash_to_point::hash_to_point_shake_512[2670-3020]</td><td class="mono">797</td><td class="mono">0.27%</td></tr>
 <tr><td style="text-align:left" class="mono">pqbench_falcon_512::hashing::shake256::keccak_f1600</td><td class="mono">585</td><td class="mono">0.19%</td></tr>
 <tr><td style="text-align:left" class="mono">pqbench_falcon_512::packing::unpack_512_u16</td><td class="mono">363</td><td class="mono">0.12%</td></tr>
 </tbody></table></details>
@@ -78,12 +78,12 @@ code { background: #f0f0f0; padding: 1px 5px; border-radius: 4px; font-size: 13p
 <details><summary>step attribution (top functions inside verify)</summary><table><thead><tr><th>Function</th><th>Steps (flat)</th><th>% of test</th></tr></thead><tbody>
 <tr><td style="text-align:left" class="mono">pqbench_falcon_512::hashing::shake256::keccak_f1600[433-3957]{NotSpecialized, NotSpecialized, NonZero(18446744073709551616), }</td><td class="mono">198,315</td><td class="mono">63.93%</td></tr>
 <tr><td style="text-align:left" class="mono">pqbench_ntt::falcon512_fast::ntt_falcon512_fast_u16_unchecked</td><td class="mono">31,260</td><td class="mono">10.08%</td></tr>
-<tr><td style="text-align:left" class="mono">pqbench_falcon_512::hashing::hash_to_point::hash_to_point_shake_512[2784-2967]</td><td class="mono">22,301</td><td class="mono">7.19%</td></tr>
+<tr><td style="text-align:left" class="mono">pqbench_falcon_512::hashing::hash_to_point::hash_to_point_shake_512[2732-2915]</td><td class="mono">22,301</td><td class="mono">7.19%</td></tr>
 <tr><td style="text-align:left" class="mono">pqbench_falcon_512::falcon::verify_512_direct_u16[898-2445]</td><td class="mono">20,243</td><td class="mono">6.53%</td></tr>
 <tr><td style="text-align:left" class="mono">pqbench_ntt::falcon512_inverse::intt_product_falcon512_fast_u16[750-2791]</td><td class="mono">14,642</td><td class="mono">4.72%</td></tr>
 <tr><td style="text-align:left" class="mono">pqbench_ntt::falcon512_inverse::untwist_output[328-1807]</td><td class="mono">10,482</td><td class="mono">3.38%</td></tr>
 <tr><td style="text-align:left" class="mono">pqbench_falcon_512::packing::unpack_512_u16[399-934]</td><td class="mono">10,192</td><td class="mono">3.29%</td></tr>
-<tr><td style="text-align:left" class="mono">pqbench_falcon_512::hashing::hash_to_point::hash_to_point_shake_512[2722-3072]</td><td class="mono">797</td><td class="mono">0.26%</td></tr>
+<tr><td style="text-align:left" class="mono">pqbench_falcon_512::hashing::hash_to_point::hash_to_point_shake_512[2670-3020]</td><td class="mono">797</td><td class="mono">0.26%</td></tr>
 </tbody></table></details>
 <h2>Realistic cost in __validate__ (deploy + call, baseline-subtracted)</h2>
 <p class="note">Adds call dispatch, tx-info read (signature deserialization) and storage read on top of bare verification &mdash; the cost an account actually pays during validation.</p>

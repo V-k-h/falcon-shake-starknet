@@ -1,8 +1,8 @@
 # Falcon-512 (SHAKE-256) verifier for Starknet accounts
 
-_A Falcon-512 (FN-DSA) signature verifier for Starknet account abstraction, using the
-standard SHAKE-256 hash-to-point, with deployable SNIP-6 accounts and an efficiency
-harness that measures every cost inside a real `__validate__`._
+_A Falcon-512 signature verifier for Starknet account abstraction, using the SHAKE-256
+hash-to-point of the Falcon round-3 specification, with deployable SNIP-6 accounts and an
+efficiency harness that measures every cost inside a real `__validate__`._
 
 > [!WARNING]
 > **Experimental and unaudited.** The verifiers and account contracts have not undergone
@@ -16,9 +16,12 @@ Starknet's STARK proofs rely only on hash functions. The ECDSA signatures that a
 account transactions rely on elliptic-curve discrete logarithms, which Shor's algorithm
 breaks. Because Starknet accounts are smart contracts, a post-quantum account can replace
 the signature check inside `__validate__`, provided verification fits Starknet's
-validation limits. This repository implements that check for Falcon-512 with the
-standard SHAKE-256 hash-to-point, so signatures from any standards-compliant Falcon
-signer verify on-chain.
+validation limits. This repository implements that check for Falcon-512 with the SHAKE-256
+hash-to-point of the Falcon round-3 specification, so signatures from round-3 Falcon
+signers (falcon.py, PQClean, liboqs) verify on-chain once re-encoded into the packed
+layout. FN-DSA, the FIPS 206 draft, frames the message differently (it hashes the public
+key and a domain separator in with it), so FN-DSA signers such as rust-fn-dsa are not
+compatible.
 
 ## What is measured
 

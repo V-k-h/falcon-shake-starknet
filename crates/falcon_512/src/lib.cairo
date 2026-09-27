@@ -1,4 +1,4 @@
-//! Falcon-512 (FN-DSA) signature verifiers with the standard SHAKE-256 hash-to-point:
+//! Falcon-512 signature verifiers with the Falcon round-3 SHAKE-256 hash-to-point:
 //! a hint variant and a direct (hint-free) variant.
 //!
 //! Verification runs entirely on-chain: the message point is derived from `message_hash`
@@ -36,8 +36,8 @@ pub fn is_valid_falcon512_public_key(public_key: Span<felt252>) -> bool {
 ///
 /// Encoding: `public_key` = 29 felts (512 NTT coeffs, base-Q packed); `signature` = 60
 /// felts (s1, salt, mul hint). The message point uses the Falcon SHAKE-256 hash-to-point
-/// ([`hash_to_point::hash_to_point_shake_512`]), so signatures are interoperable with any
-/// standards-compliant Falcon signer. Returns `false` on any malformed input (wrong
+/// ([`hash_to_point::hash_to_point_shake_512`]), so signatures from round-3 Falcon signers
+/// verify once re-encoded into this layout. Returns `false` on any malformed input (wrong
 /// length, non-canonical packing, oversized salt), bad hint, or norm above the Falcon-512
 /// bound.
 pub impl Falcon512ShakeVerifier of PqSignatureVerifier {

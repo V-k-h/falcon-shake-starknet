@@ -2,9 +2,8 @@
 //!
 //! This account stores the packed 29-felt NTT-domain public key and validates the same
 //! 60-felt hint signature layout as the hint account, deriving the message point with the
-//! standard SHAKE-256 hash-to-point of the Falcon specification. Signatures are therefore
-//! interoperable with any standards-compliant Falcon signer (e.g. falcon.py) — no custom
-//! hash construction on the signing side.
+//! SHAKE-256 hash-to-point of the Falcon round-3 specification, so round-3 Falcon signers
+//! (falcon.py, PQClean, liboqs) need no custom hash construction.
 
 #[starknet::contract(account)]
 pub mod Falcon512ShakeAccount {

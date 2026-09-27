@@ -1,7 +1,8 @@
 # Falcon-512 verifier
 
-**Scheme:** Falcon-512 (FN-DSA), lattice-based (NTRU); NIST-selected, FIPS 206 pending.
-Two verifier variants over the standard SHAKE-256 hash-to-point: hint and direct.
+**Scheme:** Falcon-512, lattice-based (NTRU); NIST-selected, to be standardized as FN-DSA
+in FIPS 206. Two verifier variants over the Falcon round-3 SHAKE-256 hash-to-point: hint
+and direct.
 **Status:** measured.
 
 Verification is integer-only and runs fully on-chain: the standard SHAKE-256
@@ -19,10 +20,11 @@ representation. Both variants share the 29-felt NTT-domain public key:
   `s1 || salt` prefix of the hint signature, so it carries nothing beyond a bare Falcon
   signature.
 
-The SHAKE-256 hash-to-point is interoperable with any standards-compliant Falcon signer
-(e.g. falcon.py). Its pure-Cairo Keccak-f[1600] (flat unrolled rounds over u128 lanes,
-lazy block squeezing; see `src/hashing/shake256.cairo`) dominates the verification cost.
-The hint/direct distinction is explained in [`HINT_VS_DIRECT.md`](HINT_VS_DIRECT.md).
+The SHAKE-256 hash-to-point follows the Falcon round-3 specification, so it matches
+round-3 signers (falcon.py, PQClean, liboqs), not FN-DSA signers, whose message framing
+differs. Its pure-Cairo Keccak-f[1600] (flat unrolled rounds over u128 lanes, lazy block
+squeezing; see `src/hashing/shake256.cairo`) dominates the verification cost. The
+hint/direct distinction is explained in [`HINT_VS_DIRECT.md`](HINT_VS_DIRECT.md).
 
 The bench fixture is a genuine signature from the reference falcon.py sampler
 (`scripts/gen_falcon_fixture.py`). Tests reject tampered messages, salts, keys, and

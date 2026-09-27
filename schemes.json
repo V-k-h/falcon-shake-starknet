@@ -30,13 +30,13 @@
       "validate_baseline_test": "bench_validate_base_falcon_512_shake",
       "contract": "Falcon512ShakeAccount",
       "nist_category": "1",
-      "standardized": "NIST-selected (FN-DSA, FIPS 206 pending); standard SHAKE-256 hash-to-point",
+      "standardized": "NIST-selected (to be standardized as FN-DSA, FIPS 206 pending); Falcon round-3 SHAKE-256 hash-to-point",
       "on_chain_hash": "SHAKE-256 hash-to-point (on-chain, pure-Cairo Keccak-f[1600])",
       "offchain_prep": "signer supplies mul hint (s1*h mod q; +29 sig felts)",
       "sig_felts": 60,
       "pubkey_felts": 29,
       "implemented": true,
-      "notes": "Standards-compliant hash-to-point: SHAKE-256 exactly per the Falcon specification, so signatures interoperate with any compliant signer (e.g. falcon.py). Hint-based verify: two generated forward NTTs check a signer-supplied s1*h pointwise. On-chain cost is dominated by the pure-Cairo Keccak-f[1600]; a native keccak_f1600 syscall (SNIP-32) would remove most of it."
+      "notes": "Falcon round-3 hash-to-point: SHAKE-256 exactly per the round-3 specification, so signatures from round-3 signers (falcon.py, PQClean, liboqs) verify; FN-DSA message framing is not supported. Hint-based verify: two generated forward NTTs check a signer-supplied s1*h pointwise. On-chain cost is dominated by the pure-Cairo Keccak-f[1600]; a native keccak_f1600 syscall (SNIP-32) would remove most of it."
     },
     {
       "key": "falcon_512_shake_direct",
@@ -49,7 +49,7 @@
       "validate_baseline_test": "bench_validate_base_falcon_512_shake_direct",
       "contract": "Falcon512ShakeDirectAccount",
       "nist_category": "1",
-      "standardized": "NIST-selected (FN-DSA, FIPS 206 pending); standard SHAKE-256 hash-to-point",
+      "standardized": "NIST-selected (to be standardized as FN-DSA, FIPS 206 pending); Falcon round-3 SHAKE-256 hash-to-point",
       "on_chain_hash": "SHAKE-256 hash-to-point (on-chain, pure-Cairo Keccak-f[1600])",
       "offchain_prep": "none beyond signing (no hint)",
       "sig_felts": 31,

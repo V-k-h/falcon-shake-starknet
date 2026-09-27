@@ -1,10 +1,10 @@
 //! Falcon-512 SHAKE-256 direct account contract.
 //!
 //! Validates the compact 31-felt direct signature layout (packed `s1` followed by the two
-//! salt felts) with the standard SHAKE-256 hash-to-point of the Falcon specification and the
+//! salt felts) with the SHAKE-256 hash-to-point of the Falcon round-3 specification and the
 //! hint-free direct core (`s1*h` recomputed on-chain). It carries no signer-supplied hint,
-//! so it mirrors a bare FIPS Falcon signature most closely; signatures are interoperable
-//! with any standards-compliant Falcon signer.
+//! so it mirrors a bare Falcon signature most closely; round-3 Falcon signers
+//! (falcon.py, PQClean, liboqs) produce it.
 
 #[starknet::contract(account)]
 pub mod Falcon512ShakeDirectAccount {

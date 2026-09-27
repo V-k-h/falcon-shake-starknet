@@ -5,7 +5,7 @@
 //! `bench_baseline_*`, which build IDENTICAL inputs; only the former calls `verify`. The
 //! per-scheme verification cost is `verify_total - baseline_total` for each metric.
 //!
-//! The fixture is a genuine standards-compliant signature (reference falcon.py sampler +
+//! The fixture is a genuine Falcon-512 signature (reference falcon.py sampler +
 //! falcon.py's own SHAKE-256 hash-to-point; regenerate with
 //! `scripts/gen_falcon_fixture.py --variant shake`). The non-bench tests are the
 //! correctness gate: the fixture verifies, and tampering with the message, salt, s1, or

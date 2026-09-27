@@ -21,7 +21,8 @@
 use pqbench_ntt::{intt_product_falcon512_fast_u16, ntt_falcon512_fast_u16_unchecked};
 use crate::zq::{Q, center_sq, centered_difference_sq, mul_mod};
 
-/// Maximum allowed `||s0||^2 + ||s1||^2` for Falcon-512 (FIPS 206 / falcon.py sig_bound).
+/// Maximum allowed `||s0||^2 + ||s1||^2` for Falcon-512 (the specification's and falcon.py's
+/// sig_bound).
 pub const SIG_BOUND_512: u64 = 34034726;
 
 

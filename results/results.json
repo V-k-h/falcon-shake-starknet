@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "generated": "2026-10-16 21:21",
+    "generated": "2026-10-16 22:51",
     "toolchain": {
       "scarb": "2.18.0",
       "snforge": "0.59.0",
@@ -49,8 +49,8 @@
       "verify_l2_gas": 30855,
       "verify_steps": 152,
       "verify_builtins": {
-        "range_check": 7,
-        "ec_op": 3
+        "ec_op": 3,
+        "range_check": 7
       },
       "calldata_l2_gas": 15360,
       "pct_of_gas_cap": 0.0309,
@@ -114,13 +114,13 @@
       "validate_baseline_test": "bench_validate_base_falcon_512_shake",
       "contract": "Falcon512ShakeAccount",
       "nist_category": "1",
-      "standardized": "NIST-selected (FN-DSA, FIPS 206 pending); standard SHAKE-256 hash-to-point",
+      "standardized": "NIST-selected (to be standardized as FN-DSA, FIPS 206 pending); Falcon round-3 SHAKE-256 hash-to-point",
       "on_chain_hash": "SHAKE-256 hash-to-point (on-chain, pure-Cairo Keccak-f[1600])",
       "offchain_prep": "signer supplies mul hint (s1*h mod q; +29 sig felts)",
       "sig_felts": 60,
       "pubkey_felts": 29,
       "implemented": true,
-      "notes": "Standards-compliant hash-to-point: SHAKE-256 exactly per the Falcon specification, so signatures interoperate with any compliant signer (e.g. falcon.py). Hint-based verify: two generated forward NTTs check a signer-supplied s1*h pointwise. On-chain cost is dominated by the pure-Cairo Keccak-f[1600]; a native keccak_f1600 syscall (SNIP-32) would remove most of it.",
+      "notes": "Falcon round-3 hash-to-point: SHAKE-256 exactly per the round-3 specification, so signatures from round-3 signers (falcon.py, PQClean, liboqs) verify; FN-DSA message framing is not supported. Hint-based verify: two generated forward NTTs check a signer-supplied s1*h pointwise. On-chain cost is dominated by the pure-Cairo Keccak-f[1600]; a native keccak_f1600 syscall (SNIP-32) would remove most of it.",
       "measured": true,
       "verify_l2_gas": 48562818,
       "verify_steps": 300277,
@@ -160,7 +160,7 @@
           "harness": false
         },
         {
-          "function": "pqbench_falcon_512::hashing::hash_to_point::hash_to_point_shake_512[2784-2967]",
+          "function": "pqbench_falcon_512::hashing::hash_to_point::hash_to_point_shake_512[2732-2915]",
           "flat_steps": 22301,
           "flat_pct": 7.42,
           "harness": false
@@ -172,7 +172,7 @@
           "harness": false
         },
         {
-          "function": "pqbench_falcon_512::hashing::hash_to_point::hash_to_point_shake_512[2722-3072]",
+          "function": "pqbench_falcon_512::hashing::hash_to_point::hash_to_point_shake_512[2670-3020]",
           "flat_steps": 797,
           "flat_pct": 0.27,
           "harness": false
@@ -250,7 +250,7 @@
       "validate_baseline_test": "bench_validate_base_falcon_512_shake_direct",
       "contract": "Falcon512ShakeDirectAccount",
       "nist_category": "1",
-      "standardized": "NIST-selected (FN-DSA, FIPS 206 pending); standard SHAKE-256 hash-to-point",
+      "standardized": "NIST-selected (to be standardized as FN-DSA, FIPS 206 pending); Falcon round-3 SHAKE-256 hash-to-point",
       "on_chain_hash": "SHAKE-256 hash-to-point (on-chain, pure-Cairo Keccak-f[1600])",
       "offchain_prep": "none beyond signing (no hint)",
       "sig_felts": 31,
@@ -290,7 +290,7 @@
           "harness": false
         },
         {
-          "function": "pqbench_falcon_512::hashing::hash_to_point::hash_to_point_shake_512[2784-2967]",
+          "function": "pqbench_falcon_512::hashing::hash_to_point::hash_to_point_shake_512[2732-2915]",
           "flat_steps": 22301,
           "flat_pct": 7.19,
           "harness": false
@@ -320,7 +320,7 @@
           "harness": false
         },
         {
-          "function": "pqbench_falcon_512::hashing::hash_to_point::hash_to_point_shake_512[2722-3072]",
+          "function": "pqbench_falcon_512::hashing::hash_to_point::hash_to_point_shake_512[2670-3020]",
           "flat_steps": 797,
           "flat_pct": 0.26,
           "harness": false

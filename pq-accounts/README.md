@@ -37,8 +37,9 @@ verifier; the shared interfaces, execution checks, and key storage live beside i
 - **Upgrades:** `upgrade(new_class_hash)` runs only as a self-call, rejects the zero class
   hash, replaces the class, and emits `Upgraded`. The key survives the class change.
 
-Signatures use the standard SHAKE-256 hash-to-point of the Falcon specification over the
-transaction hash, so any standards-compliant Falcon-512 signer can produce them; the hint
+Signatures use the SHAKE-256 hash-to-point of the Falcon round-3 specification over the
+transaction hash, so round-3 Falcon-512 signers (falcon.py, PQClean, liboqs) can produce
+them, and FN-DSA signers cannot, because FIPS 206 frames the message differently; the hint
 account additionally needs `s1 * h`, which anyone can compute from the public signature
 and key. Signing is off-chain; this repository ships no key material.
 

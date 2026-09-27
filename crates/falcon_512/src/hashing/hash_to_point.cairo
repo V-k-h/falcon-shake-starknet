@@ -1,8 +1,9 @@
-//! Falcon-512 hash-to-point with the standard SHAKE-256 construction of the Falcon
-//! specification (the FN-DSA hash-to-point): absorb `salt || message_hash` with SHAKE-256,
-//! then read the squeezed stream as big-endian 16-bit words, accepting `word % Q` while
-//! `word < 5Q`, until 512 coefficients are collected. Signatures are therefore
-//! interoperable with any standards-compliant Falcon signer (e.g. falcon.py).
+//! Falcon-512 hash-to-point with the SHAKE-256 construction of the Falcon round-3
+//! specification: absorb `salt || message_hash` with SHAKE-256, then read the squeezed
+//! stream as big-endian 16-bit words, accepting `word % Q` while `word < 5Q`, until 512
+//! coefficients are collected. Signatures from round-3 Falcon signers (falcon.py,
+//! PQClean, liboqs) are therefore accepted; FN-DSA (the FIPS 206 draft) frames the
+//! message differently and is not.
 //!
 //! The message hash is absorbed as its 32 little-endian bytes and the 40-byte salt as two
 //! felts of 20 little-endian bytes each.
@@ -73,12 +74,12 @@ const TWO_POW_160: u256 = 0x10000000000000000000000000000000000000000_u256;
 
 /// ## Construction
 ///
-/// The standard Falcon construction (FN-DSA; FIPS 206 is pending): absorb
-/// `salt || message_hash` with SHAKE-256, then consume the squeezed stream as big-endian
-/// 16-bit words, applying the rejection rule (accept `word % Q` while `word < 5Q`)
-/// until 512 coefficients are collected. This is interoperable with any
-/// standards-compliant Falcon signer (e.g. falcon.py). The message hash is absorbed as
-/// its 32 little-endian bytes, the salt as its two 20-byte little-endian halves.
+/// The Falcon round-3 construction: absorb `salt || message_hash` with SHAKE-256,
+/// then consume the squeezed stream as big-endian 16-bit words, applying the rejection
+/// rule (accept `word % Q` while `word < 5Q`) until 512 coefficients are collected,
+/// matching round-3 Falcon signers (falcon.py, PQClean, liboqs). The message hash is
+/// absorbed as its 32 little-endian bytes, the salt as its two 20-byte little-endian
+/// halves.
 ///
 /// The sponge is driven directly on the Keccak lanes: the 72-byte input fits a single
 /// rate block whose padded lanes are assembled straight from the salt and message-hash

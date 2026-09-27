@@ -6,10 +6,11 @@ override for their subtree.)
 
 ## What this repo is
 
-A **public, self-contained** Falcon-512 (FN-DSA) verifier for Starknet accounts, using
-the standard SHAKE-256 hash-to-point, together with its benchmark harness and deployable
-SNIP-6 accounts. Every cost is measured inside a real `__validate__` against Starknet's
-validation caps. It is a standalone project and must read as one.
+A **public, self-contained** Falcon-512 verifier for Starknet accounts, using the
+SHAKE-256 hash-to-point of the Falcon round-3 specification, together with its benchmark
+harness and deployable SNIP-6 accounts. Every cost is measured inside a real
+`__validate__` against Starknet's validation caps. It is a standalone project and must
+read as one.
 
 ## Structure
 
@@ -53,8 +54,10 @@ Separately, **`pq-accounts/`** is a sibling sub-project holding the *deployable*
 (real SNIP-6 contracts under `contracts/src/accounts/`, with the shared account component,
 interfaces, execution checks, and key storage under `contracts/src/utils/`). It is the
 real on-chain artifact. The Falcon benchmark accounts in `crates/bench_targets` embed its
-component, so the validate measurements run the production validation path. Signing happens off-chain with a standards-compliant
-Falcon signer; this repository ships no key material and no signing tool.
+component, so the validate measurements run the production validation path. Signing
+happens off-chain with a Falcon round-3 signer (falcon.py, PQClean, liboqs; FN-DSA signers
+frame the message differently and are not compatible); this repository ships no key
+material and no signing tool.
 
 ## What must be updated together
 
