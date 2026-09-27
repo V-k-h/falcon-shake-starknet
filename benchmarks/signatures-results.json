@@ -1,0 +1,821 @@
+{
+ "metadata": {
+  "generated": "2026-10-16",
+  "rev": "bc3d93a8e120d3163fb45ec7f2f81e6bf562b1e1",
+  "signatures": 64,
+  "block_probabilities": {
+   "8": 0.4074638798296493,
+   "9": 0.5925361201703507,
+   "10": 0.0
+  },
+  "method": "paired-test subtraction (cmp_X - base), Scarb/snforge from .tool-versions"
+ },
+ "per_signature": [
+  {
+   "blocks": 8,
+   "hint": {
+    "l2_gas": 44511866,
+    "steps": 277973
+   },
+   "direct": {
+    "l2_gas": 45548226,
+    "steps": 287208
+   }
+  },
+  {
+   "blocks": 9,
+   "hint": {
+    "l2_gas": 48592188,
+    "steps": 300539
+   },
+   "direct": {
+    "l2_gas": 49628548,
+    "steps": 309774
+   }
+  },
+  {
+   "blocks": 8,
+   "hint": {
+    "l2_gas": 44481636,
+    "steps": 277713
+   },
+   "direct": {
+    "l2_gas": 45517996,
+    "steps": 286948
+   }
+  },
+  {
+   "blocks": 8,
+   "hint": {
+    "l2_gas": 44515256,
+    "steps": 278003
+   },
+   "direct": {
+    "l2_gas": 45551616,
+    "steps": 287238
+   }
+  },
+  {
+   "blocks": 9,
+   "hint": {
+    "l2_gas": 48557258,
+    "steps": 300223
+   },
+   "direct": {
+    "l2_gas": 49593618,
+    "steps": 309458
+   }
+  },
+  {
+   "blocks": 8,
+   "hint": {
+    "l2_gas": 44493926,
+    "steps": 277817
+   },
+   "direct": {
+    "l2_gas": 45530286,
+    "steps": 287052
+   }
+  },
+  {
+   "blocks": 9,
+   "hint": {
+    "l2_gas": 48631828,
+    "steps": 300875
+   },
+   "direct": {
+    "l2_gas": 49668188,
+    "steps": 310110
+   }
+  },
+  {
+   "blocks": 9,
+   "hint": {
+    "l2_gas": 48600008,
+    "steps": 300599
+   },
+   "direct": {
+    "l2_gas": 49636368,
+    "steps": 309834
+   }
+  },
+  {
+   "blocks": 9,
+   "hint": {
+    "l2_gas": 48586348,
+    "steps": 300483
+   },
+   "direct": {
+    "l2_gas": 49622708,
+    "steps": 309718
+   }
+  },
+  {
+   "blocks": 9,
+   "hint": {
+    "l2_gas": 48590428,
+    "steps": 300521
+   },
+   "direct": {
+    "l2_gas": 49626788,
+    "steps": 309756
+   }
+  },
+  {
+   "blocks": 8,
+   "hint": {
+    "l2_gas": 44523336,
+    "steps": 278079
+   },
+   "direct": {
+    "l2_gas": 45559696,
+    "steps": 287314
+   }
+  },
+  {
+   "blocks": 9,
+   "hint": {
+    "l2_gas": 48567708,
+    "steps": 300321
+   },
+   "direct": {
+    "l2_gas": 49604068,
+    "steps": 309556
+   }
+  },
+  {
+   "blocks": 8,
+   "hint": {
+    "l2_gas": 44498426,
+    "steps": 277859
+   },
+   "direct": {
+    "l2_gas": 45534786,
+    "steps": 287094
+   }
+  },
+  {
+   "blocks": 9,
+   "hint": {
+    "l2_gas": 48569888,
+    "steps": 300339
+   },
+   "direct": {
+    "l2_gas": 49606248,
+    "steps": 309574
+   }
+  },
+  {
+   "blocks": 9,
+   "hint": {
+    "l2_gas": 48603678,
+    "steps": 300633
+   },
+   "direct": {
+    "l2_gas": 49640038,
+    "steps": 309868
+   }
+  },
+  {
+   "blocks": 9,
+   "hint": {
+    "l2_gas": 48571658,
+    "steps": 300353
+   },
+   "direct": {
+    "l2_gas": 49608018,
+    "steps": 309588
+   }
+  },
+  {
+   "blocks": 9,
+   "hint": {
+    "l2_gas": 48578028,
+    "steps": 300407
+   },
+   "direct": {
+    "l2_gas": 49614388,
+    "steps": 309642
+   }
+  },
+  {
+   "blocks": 8,
+   "hint": {
+    "l2_gas": 44512886,
+    "steps": 277983
+   },
+   "direct": {
+    "l2_gas": 45549246,
+    "steps": 287218
+   }
+  },
+  {
+   "blocks": 8,
+   "hint": {
+    "l2_gas": 44497816,
+    "steps": 277853
+   },
+   "direct": {
+    "l2_gas": 45534176,
+    "steps": 287088
+   }
+  },
+  {
+   "blocks": 8,
+   "hint": {
+    "l2_gas": 44515376,
+    "steps": 278005
+   },
+   "direct": {
+    "l2_gas": 45551736,
+    "steps": 287240
+   }
+  },
+  {
+   "blocks": 9,
+   "hint": {
+    "l2_gas": 48586738,
+    "steps": 300487
+   },
+   "direct": {
+    "l2_gas": 49623098,
+    "steps": 309722
+   }
+  },
+  {
+   "blocks": 9,
+   "hint": {
+    "l2_gas": 48615938,
+    "steps": 300737
+   },
+   "direct": {
+    "l2_gas": 49652298,
+    "steps": 309972
+   }
+  },
+  {
+   "blocks": 8,
+   "hint": {
+    "l2_gas": 44514876,
+    "steps": 278001
+   },
+   "direct": {
+    "l2_gas": 45551236,
+    "steps": 287236
+   }
+  },
+  {
+   "blocks": 8,
+   "hint": {
+    "l2_gas": 44499406,
+    "steps": 277867
+   },
+   "direct": {
+    "l2_gas": 45535766,
+    "steps": 287102
+   }
+  },
+  {
+   "blocks": 9,
+   "hint": {
+    "l2_gas": 48578138,
+    "steps": 300407
+   },
+   "direct": {
+    "l2_gas": 49614498,
+    "steps": 309642
+   }
+  },
+  {
+   "blocks": 8,
+   "hint": {
+    "l2_gas": 44483586,
+    "steps": 277729
+   },
+   "direct": {
+    "l2_gas": 45519946,
+    "steps": 286964
+   }
+  },
+  {
+   "blocks": 8,
+   "hint": {
+    "l2_gas": 44488456,
+    "steps": 277775
+   },
+   "direct": {
+    "l2_gas": 45524816,
+    "steps": 287010
+   }
+  },
+  {
+   "blocks": 8,
+   "hint": {
+    "l2_gas": 44514256,
+    "steps": 277995
+   },
+   "direct": {
+    "l2_gas": 45550616,
+    "steps": 287230
+   }
+  },
+  {
+   "blocks": 9,
+   "hint": {
+    "l2_gas": 48562948,
+    "steps": 300275
+   },
+   "direct": {
+    "l2_gas": 49599308,
+    "steps": 309510
+   }
+  },
+  {
+   "blocks": 9,
+   "hint": {
+    "l2_gas": 48609928,
+    "steps": 300689
+   },
+   "direct": {
+    "l2_gas": 49646288,
+    "steps": 309924
+   }
+  },
+  {
+   "blocks": 9,
+   "hint": {
+    "l2_gas": 48578258,
+    "steps": 300407
+   },
+   "direct": {
+    "l2_gas": 49614618,
+    "steps": 309642
+   }
+  },
+  {
+   "blocks": 9,
+   "hint": {
+    "l2_gas": 48581448,
+    "steps": 300439
+   },
+   "direct": {
+    "l2_gas": 49617808,
+    "steps": 309674
+   }
+  },
+  {
+   "blocks": 8,
+   "hint": {
+    "l2_gas": 44515606,
+    "steps": 278007
+   },
+   "direct": {
+    "l2_gas": 45551966,
+    "steps": 287242
+   }
+  },
+  {
+   "blocks": 9,
+   "hint": {
+    "l2_gas": 48572008,
+    "steps": 300359
+   },
+   "direct": {
+    "l2_gas": 49608368,
+    "steps": 309594
+   }
+  },
+  {
+   "blocks": 9,
+   "hint": {
+    "l2_gas": 48571388,
+    "steps": 300355
+   },
+   "direct": {
+    "l2_gas": 49607748,
+    "steps": 309590
+   }
+  },
+  {
+   "blocks": 8,
+   "hint": {
+    "l2_gas": 44516956,
+    "steps": 278021
+   },
+   "direct": {
+    "l2_gas": 45553316,
+    "steps": 287256
+   }
+  },
+  {
+   "blocks": 8,
+   "hint": {
+    "l2_gas": 44487496,
+    "steps": 277767
+   },
+   "direct": {
+    "l2_gas": 45523856,
+    "steps": 287002
+   }
+  },
+  {
+   "blocks": 9,
+   "hint": {
+    "l2_gas": 48588368,
+    "steps": 300503
+   },
+   "direct": {
+    "l2_gas": 49624728,
+    "steps": 309738
+   }
+  },
+  {
+   "blocks": 9,
+   "hint": {
+    "l2_gas": 48594278,
+    "steps": 300545
+   },
+   "direct": {
+    "l2_gas": 49630638,
+    "steps": 309780
+   }
+  },
+  {
+   "blocks": 9,
+   "hint": {
+    "l2_gas": 48562328,
+    "steps": 300271
+   },
+   "direct": {
+    "l2_gas": 49598688,
+    "steps": 309506
+   }
+  },
+  {
+   "blocks": 9,
+   "hint": {
+    "l2_gas": 48603528,
+    "steps": 300633
+   },
+   "direct": {
+    "l2_gas": 49639888,
+    "steps": 309868
+   }
+  },
+  {
+   "blocks": 8,
+   "hint": {
+    "l2_gas": 44513196,
+    "steps": 277985
+   },
+   "direct": {
+    "l2_gas": 45549556,
+    "steps": 287220
+   }
+  },
+  {
+   "blocks": 9,
+   "hint": {
+    "l2_gas": 48567558,
+    "steps": 300319
+   },
+   "direct": {
+    "l2_gas": 49603918,
+    "steps": 309554
+   }
+  },
+  {
+   "blocks": 8,
+   "hint": {
+    "l2_gas": 44518496,
+    "steps": 278035
+   },
+   "direct": {
+    "l2_gas": 45554856,
+    "steps": 287270
+   }
+  },
+  {
+   "blocks": 9,
+   "hint": {
+    "l2_gas": 48619868,
+    "steps": 300775
+   },
+   "direct": {
+    "l2_gas": 49656228,
+    "steps": 310010
+   }
+  },
+  {
+   "blocks": 9,
+   "hint": {
+    "l2_gas": 48572298,
+    "steps": 300361
+   },
+   "direct": {
+    "l2_gas": 49608658,
+    "steps": 309596
+   }
+  },
+  {
+   "blocks": 8,
+   "hint": {
+    "l2_gas": 44516996,
+    "steps": 278021
+   },
+   "direct": {
+    "l2_gas": 45553356,
+    "steps": 287256
+   }
+  },
+  {
+   "blocks": 9,
+   "hint": {
+    "l2_gas": 48575348,
+    "steps": 300389
+   },
+   "direct": {
+    "l2_gas": 49611708,
+    "steps": 309624
+   }
+  },
+  {
+   "blocks": 8,
+   "hint": {
+    "l2_gas": 44510596,
+    "steps": 277959
+   },
+   "direct": {
+    "l2_gas": 45546956,
+    "steps": 287194
+   }
+  },
+  {
+   "blocks": 9,
+   "hint": {
+    "l2_gas": 48580338,
+    "steps": 300427
+   },
+   "direct": {
+    "l2_gas": 49616698,
+    "steps": 309662
+   }
+  },
+  {
+   "blocks": 9,
+   "hint": {
+    "l2_gas": 48586228,
+    "steps": 300471
+   },
+   "direct": {
+    "l2_gas": 49622588,
+    "steps": 309706
+   }
+  },
+  {
+   "blocks": 8,
+   "hint": {
+    "l2_gas": 44482466,
+    "steps": 277719
+   },
+   "direct": {
+    "l2_gas": 45518826,
+    "steps": 286954
+   }
+  },
+  {
+   "blocks": 8,
+   "hint": {
+    "l2_gas": 44511776,
+    "steps": 277973
+   },
+   "direct": {
+    "l2_gas": 45548136,
+    "steps": 287208
+   }
+  },
+  {
+   "blocks": 9,
+   "hint": {
+    "l2_gas": 48569638,
+    "steps": 300337
+   },
+   "direct": {
+    "l2_gas": 49605998,
+    "steps": 309572
+   }
+  },
+  {
+   "blocks": 9,
+   "hint": {
+    "l2_gas": 48561758,
+    "steps": 300265
+   },
+   "direct": {
+    "l2_gas": 49598118,
+    "steps": 309500
+   }
+  },
+  {
+   "blocks": 9,
+   "hint": {
+    "l2_gas": 48570998,
+    "steps": 300349
+   },
+   "direct": {
+    "l2_gas": 49607358,
+    "steps": 309584
+   }
+  },
+  {
+   "blocks": 8,
+   "hint": {
+    "l2_gas": 44513116,
+    "steps": 277985
+   },
+   "direct": {
+    "l2_gas": 45549476,
+    "steps": 287220
+   }
+  },
+  {
+   "blocks": 8,
+   "hint": {
+    "l2_gas": 44496466,
+    "steps": 277841
+   },
+   "direct": {
+    "l2_gas": 45532826,
+    "steps": 287076
+   }
+  },
+  {
+   "blocks": 9,
+   "hint": {
+    "l2_gas": 48618318,
+    "steps": 300759
+   },
+   "direct": {
+    "l2_gas": 49654678,
+    "steps": 309994
+   }
+  },
+  {
+   "blocks": 8,
+   "hint": {
+    "l2_gas": 44513366,
+    "steps": 277989
+   },
+   "direct": {
+    "l2_gas": 45549726,
+    "steps": 287224
+   }
+  },
+  {
+   "blocks": 8,
+   "hint": {
+    "l2_gas": 44517486,
+    "steps": 278025
+   },
+   "direct": {
+    "l2_gas": 45553846,
+    "steps": 287260
+   }
+  },
+  {
+   "blocks": 8,
+   "hint": {
+    "l2_gas": 44496496,
+    "steps": 277841
+   },
+   "direct": {
+    "l2_gas": 45532856,
+    "steps": 287076
+   }
+  },
+  {
+   "blocks": 9,
+   "hint": {
+    "l2_gas": 48577258,
+    "steps": 300407
+   },
+   "direct": {
+    "l2_gas": 49613618,
+    "steps": 309642
+   }
+  },
+  {
+   "blocks": 9,
+   "hint": {
+    "l2_gas": 48592958,
+    "steps": 300543
+   },
+   "direct": {
+    "l2_gas": 49629318,
+    "steps": 309778
+   }
+  }
+ ],
+ "groups": {
+  "hint_8": {
+   "l2_gas": {
+    "n": 28,
+    "min": 44481636,
+    "median": 44512376.0,
+    "max": 44523336
+   },
+   "steps": {
+    "n": 28,
+    "min": 277713,
+    "median": 277978.0,
+    "max": 278079
+   }
+  },
+  "hint_9": {
+   "l2_gas": {
+    "n": 36,
+    "min": 48557258,
+    "median": 48579298.0,
+    "max": 48631828
+   },
+   "steps": {
+    "n": 36,
+    "min": 300223,
+    "median": 300417.0,
+    "max": 300875
+   }
+  },
+  "direct_8": {
+   "l2_gas": {
+    "n": 28,
+    "min": 45517996,
+    "median": 45548736.0,
+    "max": 45559696
+   },
+   "steps": {
+    "n": 28,
+    "min": 286948,
+    "median": 287213.0,
+    "max": 287314
+   }
+  },
+  "direct_9": {
+   "l2_gas": {
+    "n": 36,
+    "min": 49593618,
+    "median": 49615658.0,
+    "max": 49668188
+   },
+   "steps": {
+    "n": 36,
+    "min": 309458,
+    "median": 309652.0,
+    "max": 310110
+   }
+  }
+ },
+ "validate": {
+  "hint_8": {
+   "l2_gas": 45255766,
+   "steps": 285352
+  },
+  "rejected": {
+   "l2_gas": 49373678,
+   "steps": 308265
+  },
+  "direct_8": {
+   "l2_gas": 46291356,
+   "steps": 294580
+  },
+  "direct_9": {
+   "l2_gas": 50371678,
+   "steps": 317146
+  },
+  "hint_9": {
+   "l2_gas": 49336088,
+   "steps": 307918
+  }
+ },
+ "rejection": {
+  "length": {
+   "l2_gas": 9700,
+   "steps": 97
+  },
+  "packing": {
+   "l2_gas": 1306030,
+   "steps": 10777
+  },
+  "hint": {
+   "l2_gas": 41101656,
+   "steps": 247027
+  },
+  "message_hint": {
+   "l2_gas": 48629048,
+   "steps": 300881
+  },
+  "message_direct": {
+   "l2_gas": 49665408,
+   "steps": 310116
+  }
+ }
+}

@@ -35,6 +35,7 @@ schemes.json            # scheme registry: one entry per verifier variant
 efficiency_baseline.json  # the ratchet: pinned L2 gas + steps per benchmark pair
 results/                # generated snapshot (never hand-edited)
 compare/                # cross-implementation benchmark at pinned commits (make compare)
+benchmarks/             # signature sweep and devnet end-to-end runs (make sweep, make devnet)
 .github/workflows/      # CI: test suite + efficiency ratchet gate
 .tool-versions          # pinned toolchain (asdf); Makefile targets drive everything
 pq-accounts/            # SEPARATE sub-project: the DEPLOYABLE accounts, not the harness

@@ -1,0 +1,59 @@
+diff --git a/crates/starknet-devnet-types/src/rpc/contract_class.rs b/crates/starknet-devnet-types/src/rpc/contract_class.rs
+index 09726bb..8095add 100644
+--- a/crates/starknet-devnet-types/src/rpc/contract_class.rs
++++ b/crates/starknet-devnet-types/src/rpc/contract_class.rs
+@@ -110,7 +110,7 @@ impl TryFrom<ContractClass> for starknet_api::contract_class::ContractClass {
+ 
+                 Ok(starknet_api::contract_class::ContractClass::V1((
+                     casm,
+-                    SierraVersion::from_str(&sierra_contract_class.contract_class_version)?,
++                    sierra_version_of_class(&sierra_contract_class)?,
+                 )))
+             }
+         }
+@@ -150,8 +150,7 @@ impl TryFrom<ContractClass> for ClassInfo {
+                     0
+                 };
+ 
+-                let sierra_version =
+-                    SierraVersion::from_str(&sierra_contract_class.contract_class_version)?;
++                let sierra_version = sierra_version_of_class(&sierra_contract_class)?;
+                 ClassInfo::new(
+                     &ContractClass::Cairo1(sierra_contract_class).try_into()?,
+                     sierra_program_length,
+@@ -308,9 +307,20 @@ fn jsonified_sierra_to_runnable_casm(
+     jsonified_sierra: serde_json::Value,
+     sierra_version: &str,
+ ) -> Result<RunnableCompiledClass, Error> {
++    let _ = sierra_version;
++    let program: Vec<Felt> = jsonified_sierra
++        .get("sierra_program")
++        .and_then(|p| p.as_array())
++        .map(|felts| {
++            felts.iter().take(3).filter_map(|f| f.as_str()).filter_map(|s| Felt::from_hex(s).ok()).collect()
++        })
++        .unwrap_or_default();
++    let version = SierraVersion::extract_from_program(&program).map_err(|e| {
++        Error::ConversionError(ConversionError::InvalidInternalStructure(e.to_string()))
++    })?;
+     let casm = compile_sierra_contract_json(jsonified_sierra)?;
+ 
+-    let versioned_casm = (casm, SierraVersion::from_str(sierra_version)?);
++    let versioned_casm = (casm, version);
+     let compiled = versioned_casm.try_into().map_err(|e: ProgramError| {
+         Error::ConversionError(ConversionError::InvalidInternalStructure(e.to_string()))
+     })?;
+@@ -481,3 +491,13 @@ mod tests {
+         );
+     }
+ }
++
++/// The Sierra version a class was compiled to, read from the header of its Sierra program
++/// (not `contract_class_version`, which is the class format version).
++fn sierra_version_of_class(class: &SierraContractClass) -> Result<SierraVersion, Error> {
++    let program: Vec<Felt> =
++        class.sierra_program.iter().take(3).map(|f| Felt::from(f.value.clone())).collect();
++    SierraVersion::extract_from_program(&program).map_err(|e| {
++        Error::ConversionError(ConversionError::InvalidInternalStructure(e.to_string()))
++    })
++}

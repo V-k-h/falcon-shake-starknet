@@ -15,23 +15,23 @@
     "ours": {
       "title": "falcon-shake-starknet (this repo)",
       "url": "this repository",
-      "rev": "b8c7f8e8a84185abc5759e3ac7becb1bed78450b",
+      "rev": "bc3d93a8e120d3163fb45ec7f2f81e6bf562b1e1",
       "costs": {
-        "core_hint_typed": {
-          "l2_gas": 7691940,
-          "steps": 62272
+        "ntt": {
+          "l2_gas": 2138310,
+          "steps": 15648
         },
         "core_direct_typed": {
           "l2_gas": 9360080,
           "steps": 76733
         },
-        "ntt": {
-          "l2_gas": 2138310,
-          "steps": 15648
-        },
         "core_direct": {
           "l2_gas": 13211690,
           "steps": 111663
+        },
+        "core_hint_typed": {
+          "l2_gas": 7691940,
+          "steps": 62272
         },
         "core_hint": {
           "l2_gas": 12970980,
@@ -88,6 +88,10 @@
           "l2_gas": 2138310,
           "steps": 15648
         },
+        "core_direct_typed": {
+          "l2_gas": 19023730,
+          "steps": 172052
+        },
         "core_hint": {
           "l2_gas": 11445930,
           "steps": 95173
@@ -100,21 +104,17 @@
           "l2_gas": 8194160,
           "steps": 65883
         },
-        "core_direct_typed": {
-          "l2_gas": 19023730,
-          "steps": 172052
-        },
         "h2p": {
           "l2_gas": 40063098,
           "steps": 231223
         },
-        "verify_hint": {
-          "l2_gas": 50163878,
-          "steps": 312894
-        },
         "verify_direct": {
           "l2_gas": 60361668,
           "steps": 413837
+        },
+        "verify_hint": {
+          "l2_gas": 50163878,
+          "steps": 312894
         },
         "validate_hint": {
           "l2_gas": 51751728,
@@ -159,13 +159,13 @@
           "l2_gas": 2189810,
           "steps": 16163
         },
-        "verify_hint": {
-          "l2_gas": 10079674,
-          "steps": 81348
-        },
         "core_hint_typed": {
           "l2_gas": 7344750,
           "steps": 58690
+        },
+        "verify_hint": {
+          "l2_gas": 10079674,
+          "steps": 81348
         },
         "validate_hint": {
           "l2_gas": 10800974,
@@ -199,11 +199,11 @@
           "l2_gas": 32576680,
           "steps": 296525
         },
-        "core_hint_typed": {
+        "core_hint": {
           "l2_gas": 76684240,
           "steps": 692686
         },
-        "core_hint": {
+        "core_hint_typed": {
           "l2_gas": 76684240,
           "steps": 692686
         },

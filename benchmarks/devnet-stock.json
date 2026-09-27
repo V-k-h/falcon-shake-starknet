@@ -1,0 +1,219 @@
+{
+ "metadata": {
+  "generated": "2026-10-16",
+  "rev": "bc3d93a8e120d3163fb45ec7f2f81e6bf562b1e1",
+  "devnet": "starknet-devnet 0.9.0",
+  "chain_id": "0x534e5f5345504f4c4941",
+  "gas_prices_fri": {
+   "l1_gas_price": "0x3b9aca00",
+   "l2_gas_price": "0x3b9aca00",
+   "l1_data_gas_price": "0x3b9aca00"
+  }
+ },
+ "accounts": {
+  "hint": {
+   "class_hash": "0x00cc1f0a62e1770f796763ccc88175b288dc5ae0918ebe735a94b8fa3c2ac975",
+   "address": "0x04f4fa923449e241bcdca446e693eaaefdb22feb9963d6e4d805794acc2a48fd",
+   "signature_felts": 60,
+   "bad_signature": "rejected: {\"code\": 55, \"message\": \"Account validation failed\", \"data\": \"The `validate` entry point panicked with:\\nError in contract (contract address: 0x04f4fa923449e241bcdca446e693eaaefdb22feb9963d6e4d805794acc2a48fd, class hash: 0x00cc1f0a62e1770f796763ccc88175b288dc5ae0918ebe735a94b8fa3c2ac975, ",
+   "transactions": {
+    "8": {
+     "transaction_hash": "0xb66c89644df16b058f50f472de1524a5c5e3b9bebed2d87acdeac0edcb7cc2",
+     "execution_status": "SUCCEEDED",
+     "finality_status": "ACCEPTED_ON_L2",
+     "actual_fee": {
+      "unit": "FRI",
+      "amount": "0x1ba53e729350000"
+     },
+     "execution_resources": {
+      "l1_gas": 0,
+      "l1_data_gas": 192,
+      "l2_gas": 124504000
+     },
+     "trace": {
+      "validate_invocation": {
+       "l1_gas": 0,
+       "l2_gas": 124120000
+      },
+      "execute_invocation": {
+       "l1_gas": 0,
+       "l2_gas": 560000
+      },
+      "fee_transfer_invocation": {
+       "l1_gas": 0,
+       "l2_gas": 400000
+      },
+      "total": {
+       "l1_gas": 0,
+       "l1_data_gas": 192,
+       "l2_gas": 124504000
+      },
+      "legacy_billing": {
+       "validate_invocation": true,
+       "execute_invocation": true,
+       "fee_transfer_invocation": true
+      }
+     }
+    },
+    "9": {
+     "transaction_hash": "0x224dd63cf02e4f77c24b9597c5c8621967a86305bf9c5b00d693818262bc6d0",
+     "execution_status": "SUCCEEDED",
+     "finality_status": "ACCEPTED_ON_L2",
+     "actual_fee": {
+      "unit": "FRI",
+      "amount": "0x1f17742c01f0000"
+     },
+     "execution_resources": {
+      "l1_gas": 0,
+      "l1_data_gas": 192,
+      "l2_gas": 140024000
+     },
+     "trace": {
+      "validate_invocation": {
+       "l1_gas": 0,
+       "l2_gas": 139640000
+      },
+      "execute_invocation": {
+       "l1_gas": 0,
+       "l2_gas": 560000
+      },
+      "fee_transfer_invocation": {
+       "l1_gas": 0,
+       "l2_gas": 400000
+      },
+      "total": {
+       "l1_gas": 0,
+       "l1_data_gas": 192,
+       "l2_gas": 140024000
+      },
+      "legacy_billing": {
+       "validate_invocation": true,
+       "execute_invocation": true,
+       "fee_transfer_invocation": true
+      }
+     }
+    }
+   }
+  },
+  "direct": {
+   "class_hash": "0x04482a47b9deb97a44c2e8e79325eab8490072d65db4dc26163efebb595a7c3e",
+   "address": "0x0415ec868d8f9b3694ff1b711e049e496246b2ede95ce31d1a5b7d03c1a30268",
+   "signature_felts": 31,
+   "bad_signature": "rejected: {\"code\": 55, \"message\": \"Account validation failed\", \"data\": \"The `validate` entry point panicked with:\\nError in contract (contract address: 0x0415ec868d8f9b3694ff1b711e049e496246b2ede95ce31d1a5b7d03c1a30268, class hash: 0x04482a47b9deb97a44c2e8e79325eab8490072d65db4dc26163efebb595a7c3e, ",
+   "transactions": {
+    "8": {
+     "transaction_hash": "0x5f5933372a2a09bb078fae7ac87ab8782a48639ec488d1820e185a9c194e6fa",
+     "execution_status": "SUCCEEDED",
+     "finality_status": "ACCEPTED_ON_L2",
+     "actual_fee": {
+      "unit": "FRI",
+      "amount": "0x1b9ccdc778d0000"
+     },
+     "execution_resources": {
+      "l1_gas": 0,
+      "l1_data_gas": 192,
+      "l2_gas": 124355520
+     },
+     "trace": {
+      "validate_invocation": {
+       "l1_gas": 0,
+       "l2_gas": 124120000
+      },
+      "execute_invocation": {
+       "l1_gas": 0,
+       "l2_gas": 560000
+      },
+      "fee_transfer_invocation": {
+       "l1_gas": 0,
+       "l2_gas": 400000
+      },
+      "total": {
+       "l1_gas": 0,
+       "l1_data_gas": 192,
+       "l2_gas": 124355520
+      },
+      "legacy_billing": {
+       "validate_invocation": true,
+       "execute_invocation": true,
+       "fee_transfer_invocation": true
+      }
+     }
+    },
+    "9": {
+     "transaction_hash": "0x229dc520a39aa503ca81e375ca18ea95c9e7e41829428647370cdad149317b",
+     "execution_status": "SUCCEEDED",
+     "finality_status": "ACCEPTED_ON_L2",
+     "actual_fee": {
+      "unit": "FRI",
+      "amount": "0x1f0f0380e770000"
+     },
+     "execution_resources": {
+      "l1_gas": 0,
+      "l1_data_gas": 192,
+      "l2_gas": 139875520
+     },
+     "trace": {
+      "validate_invocation": {
+       "l1_gas": 0,
+       "l2_gas": 139640000
+      },
+      "execute_invocation": {
+       "l1_gas": 0,
+       "l2_gas": 560000
+      },
+      "fee_transfer_invocation": {
+       "l1_gas": 0,
+       "l2_gas": 400000
+      },
+      "total": {
+       "l1_gas": 0,
+       "l1_data_gas": 192,
+       "l2_gas": 139875520
+      },
+      "legacy_billing": {
+       "validate_invocation": true,
+       "execute_invocation": true,
+       "fee_transfer_invocation": true
+      }
+     }
+    }
+   }
+  }
+ },
+ "ecdsa_baseline": {
+  "transaction_hash": "0x078701c6331ff449fb370e02d18e9ba6fe1b148cecee370582383f002013d70e",
+  "actual_fee": {
+   "unit": "FRI",
+   "amount": "0x4ffcfd4c78000"
+  },
+  "execution_resources": {
+   "l1_gas": 0,
+   "l1_data_gas": 128,
+   "l2_gas": 1407040
+  },
+  "trace": {
+   "validate_invocation": {
+    "l1_gas": 0,
+    "l2_gas": 320000
+   },
+   "execute_invocation": {
+    "l1_gas": 0,
+    "l2_gas": 680000
+   },
+   "fee_transfer_invocation": {
+    "l1_gas": 0,
+    "l2_gas": 400000
+   },
+   "total": {
+    "l1_gas": 0,
+    "l1_data_gas": 128,
+    "l2_gas": 1407040
+   },
+   "legacy_billing": {
+    "validate_invocation": true,
+    "execute_invocation": true,
+    "fee_transfer_invocation": true
+   }
+  }
+ }
+}

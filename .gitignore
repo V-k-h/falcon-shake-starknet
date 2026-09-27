@@ -14,3 +14,6 @@ __pycache__/
 
 # cross-implementation benchmark checkouts
 compare/.work/
+
+# benchmark checkouts
+benchmarks/.work/
