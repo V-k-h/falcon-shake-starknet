@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "generated": "2026-10-16",
+    "generated": "2026-10-17",
     "toolchain": {
       "scarb": "2.18.0",
       "snforge": "0.59.0"
@@ -15,39 +15,39 @@
     "ours": {
       "title": "falcon-shake-starknet (this repo)",
       "url": "this repository",
-      "rev": "bc3d93a8e120d3163fb45ec7f2f81e6bf562b1e1",
+      "rev": "25a7254759dbd58165c4b480e4b8d1e0f53131f5",
       "costs": {
-        "ntt": {
-          "l2_gas": 2138310,
-          "steps": 15648
-        },
         "core_direct_typed": {
           "l2_gas": 9360080,
           "steps": 76733
         },
         "core_direct": {
-          "l2_gas": 13211690,
-          "steps": 111663
+          "l2_gas": 10829140,
+          "steps": 89493
         },
         "core_hint_typed": {
           "l2_gas": 7691940,
           "steps": 62272
         },
-        "core_hint": {
-          "l2_gas": 12970980,
-          "steps": 110042
+        "ntt": {
+          "l2_gas": 2138310,
+          "steps": 15648
         },
         "h2p": {
           "l2_gas": 38964468,
           "steps": 222219
         },
-        "verify_direct": {
-          "l2_gas": 49599388,
-          "steps": 309514
-        },
         "verify_hint": {
           "l2_gas": 48563028,
           "steps": 300279
+        },
+        "core_hint": {
+          "l2_gas": 9596700,
+          "steps": 78626
+        },
+        "verify_direct": {
+          "l2_gas": 49599388,
+          "steps": 309514
         },
         "validate_hint": {
           "l2_gas": 49306828,

@@ -32,11 +32,12 @@ Measured numbers: [`RESULTS.md`](RESULTS.md). Raw data: [`results.json`](results
   (13 times), so a full verify needs 581M L2 gas and 4.95M steps, about six times the
   validate gas cap and five times the step cap. It is the only implementation that follows
   the FN-DSA draft's message framing.
-- **The public coefficient API pays for its input checks.** `verify_512_with_hint` from
-  felt coefficients costs 13.0M here against 11.5M upstream, because it checks all 2048
-  inputs are canonical where upstream only documents the precondition. The account path
-  does not use this API: it unpacks the packed key and signature, which validates them
-  on the way.
+- **The public coefficient API validates its inputs and costs less than upstream's.**
+  `verify_512_with_hint` from felt coefficients costs 9.60M here against 11.5M upstream,
+  although it checks all 2048 inputs are canonical where upstream only documents the
+  precondition: one bounded downcast per value proves both that it fits and that it is
+  below q. The account path does not use this API; it unpacks the packed key and
+  signature, which validates them on the way.
 - **Every account fits the class-size cap** and builds against Starknet's audited libfunc
   list; only this repository fails its build on a violation.
 
