@@ -29,13 +29,14 @@ scripts/
   verify_ntt_constants.py  # re-derives the NTT root tables from first principles
   gen_falcon_fixture.py # generates the genuine SHAKE-256 Falcon fixture (needs a falcon.py clone)
   gen_shake_h2p_kat.py  # hashlib-derived known answers for the SHAKE-256 hash-to-point
+  gen_account_fixture.py # second Falcon keypair + rotation proof for the account tests
 schemes.json            # scheme registry: one entry per verifier variant
 efficiency_baseline.json  # the ratchet: pinned L2 gas + steps per benchmark pair
 results/                # generated snapshot (never hand-edited)
 .github/workflows/      # CI: test suite + efficiency ratchet gate
 .tool-versions          # pinned toolchain (asdf); Makefile targets drive everything
 pq-accounts/            # SEPARATE sub-project: the DEPLOYABLE accounts, not the harness
-  contracts/            #   Cairo accounts — src/accounts/ (one per scheme) + src/utils/
+  contracts/            #   Cairo accounts — src/accounts/ (one per scheme) + src/utils/ + tests/
 ```
 
 Three crate kinds. **Verifier crates** (one per scheme) implement `PqSignatureVerifier`
@@ -49,9 +50,10 @@ module each, all exposing the crate-root `IValidateBench` interface), and its
 measurements are the schemes' in-`__validate__` costs.
 
 Separately, **`pq-accounts/`** is a sibling sub-project holding the *deployable* accounts
-(real SNIP-6 contracts under `contracts/src/accounts/`, with shared interfaces and
-execution helpers under `contracts/src/utils/`). It is the real on-chain artifact,
-distinct from the benchmark harness. Signing happens off-chain with a standards-compliant
+(real SNIP-6 contracts under `contracts/src/accounts/`, with the shared account component,
+interfaces, execution checks, and key storage under `contracts/src/utils/`). It is the
+real on-chain artifact. The Falcon benchmark accounts in `crates/bench_targets` embed its
+component, so the validate measurements run the production validation path. Signing happens off-chain with a standards-compliant
 Falcon signer; this repository ships no key material and no signing tool.
 
 ## What must be updated together
@@ -74,8 +76,8 @@ A change is complete only when everything it invalidates is regenerated in the s
 Generated files are never hand-edited: `results/*`, `crates/ntt/src/roots_scaled.cairo`,
 `crates/ntt/src/roots_felt.cairo`, `crates/ntt/src/bitrev.cairo`,
 `crates/ntt/src/falcon512_fast.cairo`, `crates/ntt/src/falcon512_inverse_tables.cairo`,
-`crates/falcon_512/src/fixtures/shake.cairo`, `crates/falcon_512/tests/shake_h2p_kat.cairo`.
-Regenerate via the owning script.
+`crates/falcon_512/src/fixtures/shake.cairo`, `crates/falcon_512/tests/shake_h2p_kat.cairo`,
+`pq-accounts/contracts/tests/fixtures.cairo`. Regenerate via the owning script.
 
 ## Performance: every public API is regression-checked
 

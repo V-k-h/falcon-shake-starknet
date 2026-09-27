@@ -4,6 +4,7 @@
 //! deployment and declaration hooks. Public-key accessors are split by key layout so
 //! single-felt and array-encoded accounts can expose natural return types.
 
+use starknet::ClassHash;
 use starknet::account::Call;
 
 /// SRC5 interface identifier used by Starknet account tooling for interface detection.
@@ -59,9 +60,28 @@ pub trait ISingleFeltPublicKey<TState> {
     fn get_public_key(self: @TState) -> felt252;
 }
 
-/// Public-key reader for array-key accounts.
+/// Public-key management for array-key accounts.
 #[starknet::interface]
 pub trait IFeltArrayPublicKey<TState> {
     /// Returns the public key felts used by the account verifier.
     fn get_public_key(self: @TState) -> Array<felt252>;
+
+    /// Replaces the public key. Callable only by the account itself, so the current key
+    /// authorizes the change through `__execute__`. `signature` must be a valid signature
+    /// by `new_public_key` of [`get_public_key_rotation_hash`]`(new_public_key)`, which
+    /// proves the new key is held and is well formed before it is installed.
+    fn set_public_key(ref self: TState, new_public_key: Array<felt252>, signature: Array<felt252>);
+
+    /// The message hash `new_public_key` must sign for [`set_public_key`]: the Poseidon hash
+    /// of the rotation domain tag, the chain id, this account's address, and the Poseidon
+    /// hashes of the current and the new key.
+    fn get_public_key_rotation_hash(self: @TState, new_public_key: Array<felt252>) -> felt252;
+}
+
+/// Class upgrades for accounts.
+#[starknet::interface]
+pub trait IUpgradeable<TState> {
+    /// Replaces the account's class with `new_class_hash`, which must be nonzero. Callable
+    /// only by the account itself, so the current key authorizes it through `__execute__`.
+    fn upgrade(ref self: TState, new_class_hash: ClassHash);
 }

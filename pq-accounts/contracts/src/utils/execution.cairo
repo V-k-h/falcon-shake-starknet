@@ -23,10 +23,31 @@ pub const INVALID_TX_VERSION: felt252 = 'Account: invalid tx version';
 /// Error emitted when the transaction signature does not verify.
 pub const INVALID_SIGNATURE: felt252 = 'Account: invalid signature';
 
+/// Error emitted when a self-only entrypoint is called by another address.
+pub const UNAUTHORIZED: felt252 = 'Account: unauthorized';
+
+/// Error emitted when a public key is not well formed for the account's verifier.
+pub const INVALID_PUBLIC_KEY: felt252 = 'Account: invalid public key';
+
+/// Error emitted when a new key's signature of the rotation hash does not verify.
+pub const INVALID_KEY_PROOF: felt252 = 'Account: invalid key proof';
+
+/// Error emitted when an upgrade targets the zero class hash.
+pub const INVALID_CLASS_HASH: felt252 = 'Account: invalid class hash';
+
+/// Domain tag of the public-key rotation hash.
+pub const PUBLIC_KEY_ROTATION_DOMAIN: felt252 = 'PQ_ACCOUNT_SET_PUBLIC_KEY';
+
 /// Asserts that `__execute__` is entered directly by the protocol.
 pub fn assert_protocol_caller() {
     let sender = starknet::get_caller_address();
     assert(sender.is_zero(), INVALID_CALLER);
+}
+
+/// Asserts that the caller is this account, i.e. the call was made by `__execute__` in a
+/// transaction the account validated.
+pub fn assert_self_caller() {
+    assert(starknet::get_caller_address() == starknet::get_contract_address(), UNAUTHORIZED);
 }
 
 /// Asserts that the current transaction version is supported by the account.

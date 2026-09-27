@@ -65,10 +65,12 @@ def centered(x: int) -> int:
     return x if x <= (Q - 1) // 2 else x - Q
 
 
-def emit_fixture(mods, sk, h, h_ntt, message_hash, point, salt, out_path, header):
-    """Sample a signature over `point`, re-check the on-chain equation, and write the
-    fixture. `mods` bundles the falcon.py sampler and the ntt helpers; `header` is the
-    generated file's `//!` doc block. Returns the achieved squared norm."""
+def sign_point(mods, sk, h, h_ntt, point, salt):
+    """Sample a signature over `point` and re-check the exact on-chain verification
+    equation independently of the sampler. Returns `(signature_felts, pk_felts, norm)`:
+    the 60-felt hint layout `s1 || salt_a || salt_b || mul_hint` (its 31-felt prefix is the
+    direct layout) and the 29-felt packed NTT-domain key. `mods` bundles the falcon.py
+    sampler and the ntt helpers."""
     scheme, mul_zq, ntt = mods
     _, _, _, _, B0_fft, T_fft = sk
 
@@ -105,8 +107,15 @@ def emit_fixture(mods, sk, h, h_ntt, message_hash, point, salt, out_path, header
     assert unpack_512(s1_felts) == s1
     assert unpack_512(hint_felts) == mul_hint
 
-    signature = s1_felts + [salt_a, salt_b] + hint_felts
     print(f"norm = {norm} (bound {SIG_BOUND_512}), salt = {salt.hex()}")
+    return s1_felts + [salt_a, salt_b] + hint_felts, pk_felts, norm
+
+
+def emit_fixture(mods, sk, h, h_ntt, message_hash, point, salt, out_path, header):
+    """Sample a signature over `point`, re-check the on-chain equation, and write the
+    fixture. `header` is the generated file's `//!` doc block. Returns the achieved
+    squared norm."""
+    signature, pk_felts, norm = sign_point(mods, sk, h, h_ntt, point, salt)
 
     def felt_lines(felts: list[int]) -> str:
         return "\n".join(f"        {hex(v)}," for v in felts)

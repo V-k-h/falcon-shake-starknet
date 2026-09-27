@@ -36,7 +36,7 @@ code { background: #f0f0f0; padding: 1px 5px; border-radius: 4px; font-size: 13p
 </style>
 <div class="wrap">
 <h1>Post-quantum signature verifiers &mdash; Starknet benchmark</h1>
-<p class="sub">Generated 2026-10-16 20:56 &middot; scarb 2.18.0, snforge 0.59.0 &middot; cost of verifying one signature inside an account validation.</p>
+<p class="sub">Generated 2026-10-16 21:21 &middot; scarb 2.18.0, snforge 0.59.0 &middot; cost of verifying one signature inside an account validation.</p>
 <div class="cards">
 <div class="card"><div class="l">Measured</div><div class="v">3</div></div>
 <div class="card"><div class="l">Pending</div><div class="v">0</div></div>
@@ -89,8 +89,8 @@ code { background: #f0f0f0; padding: 1px 5px; border-radius: 4px; font-size: 13p
 <p class="note">Adds call dispatch, tx-info read (signature deserialization) and storage read on top of bare verification &mdash; the cost an account actually pays during validation.</p>
 <table><thead><tr><th>Scheme</th><th>__validate__ L2 gas</th><th>% gas cap</th><th>Steps</th><th>% step cap</th><th>Bare verify L2 gas</th><th>Class (bytes)</th><th>Fits caps</th></tr></thead><tbody>
 <tr><td>ECDSA-STARK (baseline)</td><td class="mono">160,795</td><td class="mono">0.1608%</td><td class="mono">1,437</td><td class="mono">0.1437%</td><td class="mono">30,855</td><td class="mono">20,555</td><td><span class="badge ok">yes</span></td></tr>
-<tr><td>Falcon-512 SHAKE-256 (standard)</td><td class="mono">50,132,878</td><td class="mono">50.1329%</td><td class="mono">314,542</td><td class="mono">31.4542%</td><td class="mono">48,562,818</td><td class="mono">1,708,939</td><td><span class="badge ok">yes</span></td></tr>
-<tr><td>Falcon-512 SHAKE-256 direct (standard, no hint)</td><td class="mono">51,116,658</td><td class="mono">51.1167%</td><td class="mono">323,275</td><td class="mono">32.3275%</td><td class="mono">49,597,508</td><td class="mono">1,800,037</td><td><span class="badge ok">yes</span></td></tr>
+<tr><td>Falcon-512 SHAKE-256 (standard)</td><td class="mono">49,288,728</td><td class="mono">49.2887%</td><td class="mono">307,478</td><td class="mono">30.7478%</td><td class="mono">48,562,818</td><td class="mono">1,717,125</td><td><span class="badge ok">yes</span></td></tr>
+<tr><td>Falcon-512 SHAKE-256 direct (standard, no hint)</td><td class="mono">50,272,508</td><td class="mono">50.2725%</td><td class="mono">316,211</td><td class="mono">31.6211%</td><td class="mono">49,597,508</td><td class="mono">1,808,811</td><td><span class="badge ok">yes</span></td></tr>
 </tbody></table>
 <h2>On-chain footprint (signature + public key, felts)</h2>
 <div class="barrow"><div class="barlabel">ECDSA-STARK (baseline)</div><div class="track"><div class="fill" style="width:3.37%;background:#D85A30"></div></div><div class="barval mono">3 felts (2+1)</div></div>

@@ -43,8 +43,8 @@ Current efficiency of every measured entry, per crate (the values pinned in
 | [`falcon_512`](crates/falcon_512) | verify, SHAKE-256 hint variant | 48,562,818 | 300,277 |
 | [`falcon_512`](crates/falcon_512) | verify, SHAKE-256 direct variant | 49,597,508 | 309,496 |
 | [`bench_targets`](crates/bench_targets) | ECDSA-STARK account, inside `__validate__` | 160,795 | 1,437 |
-| [`bench_targets`](crates/bench_targets) | Falcon-512 SHAKE-256 hint account, inside `__validate__` | 50,132,878 | 314,542 |
-| [`bench_targets`](crates/bench_targets) | Falcon-512 SHAKE-256 direct account, inside `__validate__` | 51,116,658 | 323,275 |
+| [`bench_targets`](crates/bench_targets) | Falcon-512 SHAKE-256 hint account, inside `__validate__` | 49,288,728 | 307,478 |
+| [`bench_targets`](crates/bench_targets) | Falcon-512 SHAKE-256 direct account, inside `__validate__` | 50,272,508 | 316,211 |
 | [`ntt`](crates/ntt) | forward 512-point transform | 8,895,740 | 81,826 |
 | [`ntt`](crates/ntt) | forward transform, unreduced output | 7,832,270 | 73,587 |
 | [`ntt`](crates/ntt) | generated Falcon-512 transform, felt input | 2,137,010 | 15,635 |
@@ -69,7 +69,7 @@ crates/
   ecdsa_stark/       # classical control verifier
   falcon_512/        # Falcon-512 verifier: SHAKE-256 hash-to-point, hint and direct variants
   ntt/               # lazy-reduction NTT engine + generated Falcon-512 transform
-  bench_targets/     # one benchmark account per verifier, for the validate scenario
+  bench_targets/     # one benchmark account per verifier, embedding the production account component
 pq-accounts/
   contracts/         # deployable SNIP-6 accounts (ECDSA control, Falcon hint, Falcon direct)
 scripts/             # benchmarks, efficiency ratchet, NTT model and generator, fixtures
@@ -106,7 +106,8 @@ Every verifier implements the one interface in
 [`crates/bench_interface`](crates/bench_interface); each cost is the measured test minus
 a baseline test that builds the same inputs but omits the measured call. Bare verify
 covers the function alone. The validate scenario deploys an account from
-[`crates/bench_targets`](crates/bench_targets) and calls it, which adds dispatch,
+[`crates/bench_targets`](crates/bench_targets), which embeds the deployable accounts'
+component and runs its validation path, and calls it, which adds dispatch,
 signature deserialization, and a storage read. Numbers come from Starknet Foundry (Sierra
 gas from the default run, steps and builtins from a `cairo-steps` run), a release build
 (class size), and cairo-profiler (attribution by function).

@@ -5,9 +5,10 @@ account contract per verifier.
 **Status:** measured (ECDSA-STARK control and both Falcon-512 SHAKE-256 variants).
 
 Unlike the verifier crates (one scheme each), this crate collects **one account contract
-per verifier**, each in its own module. An account wraps its scheme the way a Starknet
-account would: `validate()` reads the transaction hash and signature from the transaction
-info, loads the stored public key, and runs the scheme's `verify`. Measuring a
+per verifier**, each in its own module. The Falcon accounts embed the deployable accounts'
+component ([`pq-accounts`](../../pq-accounts)) with their verifier, so `validate()` runs
+exactly the production validation path: read the transaction hash and signature, read the
+key from its consecutive storage slots, and run the scheme's `verify`. Measuring a
 deploy-and-call of it (minus a deploy-only baseline) captures the realistic validation
 cost (dispatch, signature deserialization, and the key's storage read) on top of bare
 verification, and building the contracts yields each scheme's contract-class size.
@@ -31,5 +32,5 @@ and the executed calls.
 | Account | Measurement | L2 gas | Steps |
 |---|---|--:|--:|
 | `EcdsaStarkAccount` | inside `__validate__` | 160,795 | 1,437 |
-| `Falcon512ShakeAccount` (hint) | inside `__validate__` | 50,132,878 | 314,542 |
-| `Falcon512ShakeDirectAccount` (direct) | inside `__validate__` | 51,116,658 | 323,275 |
+| `Falcon512ShakeAccount` (hint) | inside `__validate__` | 49,288,728 | 307,478 |
+| `Falcon512ShakeDirectAccount` (direct) | inside `__validate__` | 50,272,508 | 316,211 |

@@ -1,6 +1,6 @@
 # PQ verifier benchmark summary
 
-_Generated 2026-10-16 20:56._
+_Generated 2026-10-16 21:21._
 
 | Scheme | L2 gas | % gas cap | Steps | % step cap | Sig+PK felts | Fits caps |
 |---|--:|--:|--:|--:|--:|:--:|

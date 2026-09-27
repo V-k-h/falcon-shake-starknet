@@ -14,7 +14,14 @@
 /// Implementations MUST be self-contained: no external contract calls, since
 /// Starknet forbids them during `__validate__`.
 pub trait PqSignatureVerifier {
+    /// Whether `signature` is a valid signature of `message_hash` under `public_key`.
+    /// Returns `false`, never panics, for malformed keys or signatures.
     fn verify(message_hash: felt252, public_key: Span<felt252>, signature: Span<felt252>) -> bool;
+
+    /// Whether `public_key` is a well-formed key for this scheme: the exact felt layout
+    /// `verify` expects, with every component in its canonical range. Accounts call this
+    /// before storing a key, so a malformed key can never be installed.
+    fn is_valid_public_key(public_key: Span<felt252>) -> bool;
 }
 
 /// Max Cairo steps a transaction's validation may consume.

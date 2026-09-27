@@ -20,9 +20,13 @@ pub mod Falcon512ShakeDirectAccount {
     impl DeployableImpl =
         PqAccountComponent::DeployableImpl<ContractState, Falcon512ShakeDirectVerifier>;
     #[abi(embed_v0)]
-    impl PublicKeyImpl = PqAccountComponent::PublicKeyImpl<ContractState>;
+    impl PublicKeyImpl =
+        PqAccountComponent::PublicKeyImpl<ContractState, Falcon512ShakeDirectVerifier>;
+    #[abi(embed_v0)]
+    impl UpgradeableImpl = PqAccountComponent::UpgradeableImpl<ContractState>;
 
-    impl InternalImpl = PqAccountComponent::InternalImpl<ContractState>;
+    impl InternalImpl =
+        PqAccountComponent::InternalImpl<ContractState, Falcon512ShakeDirectVerifier>;
 
     #[storage]
     struct Storage {
@@ -38,6 +42,7 @@ pub mod Falcon512ShakeDirectAccount {
     }
 
     /// Initializes the account with the packed Falcon public key used for validation.
+    /// Panics with `Account: invalid public key` unless it is a canonical 29-felt key.
     #[constructor]
     fn constructor(ref self: ContractState, public_key: Array<felt252>) {
         self.account.initializer(public_key);

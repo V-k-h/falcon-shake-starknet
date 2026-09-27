@@ -11,6 +11,7 @@ starknet.workspace = true
 pqbench_interface.workspace = true
 pqbench_ecdsa_stark = { path = "../ecdsa_stark" }
 pqbench_falcon_512 = { path = "../falcon_512" }
+pq_accounts = { path = "../../pq-accounts/contracts" }
 
 [dev-dependencies]
 snforge_std.workspace = true

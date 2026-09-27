@@ -26,6 +26,12 @@ pub const SIG_FELTS_DIRECT: u32 = 31;
 /// Public key layout: packed NTT-domain h (29 felts).
 pub const PUBKEY_FELTS: u32 = 29;
 
+/// Whether `public_key` is a 29-felt canonical base-Q packing of 512 NTT-domain
+/// coefficients in `[0, q)`: the layout both Falcon-512 verifiers read.
+pub fn is_valid_falcon512_public_key(public_key: Span<felt252>) -> bool {
+    public_key.len() == PUBKEY_FELTS && packing::unpack_512_u16(public_key).is_some()
+}
+
 /// Standard SHAKE-256 hint variant.
 ///
 /// Encoding: `public_key` = 29 felts (512 NTT coeffs, base-Q packed); `signature` = 60
@@ -59,6 +65,10 @@ pub impl Falcon512ShakeVerifier of PqSignatureVerifier {
         };
         falcon::verify_512_with_hint_u16(s1.span(), h_ntt.span(), mul_hint.span(), msg_point.span())
     }
+
+    fn is_valid_public_key(public_key: Span<felt252>) -> bool {
+        is_valid_falcon512_public_key(public_key)
+    }
 }
 
 /// Standard SHAKE-256 direct variant: the SHAKE-256 hash-to-point of
@@ -86,5 +96,9 @@ pub impl Falcon512ShakeDirectVerifier of PqSignatureVerifier {
             None => { return false; },
         };
         falcon::verify_512_direct_u16(s1.span(), h_ntt.span(), msg_point.span())
+    }
+
+    fn is_valid_public_key(public_key: Span<felt252>) -> bool {
+        is_valid_falcon512_public_key(public_key)
     }
 }

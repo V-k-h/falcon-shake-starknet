@@ -4,6 +4,7 @@
 //! harness as a known-cheap control: it proves the measurement + report pipeline end-to-end
 //! and gives every PQ candidate a familiar cost to be compared against.
 
+use core::ec::EcPointTrait;
 use core::ecdsa::check_ecdsa_signature;
 use pqbench_interface::PqSignatureVerifier;
 
@@ -16,5 +17,13 @@ pub impl EcdsaStarkVerifier of PqSignatureVerifier {
             return false;
         }
         check_ecdsa_signature(message_hash, *public_key.at(0), *signature.at(0), *signature.at(1))
+    }
+
+    /// One felt that is the x-coordinate of a point on the STARK curve.
+    fn is_valid_public_key(public_key: Span<felt252>) -> bool {
+        if public_key.len() != 1 {
+            return false;
+        }
+        EcPointTrait::new_from_x(*public_key.at(0)).is_some()
     }
 }

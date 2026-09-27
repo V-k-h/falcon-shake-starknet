@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "generated": "2026-10-16 20:56",
+    "generated": "2026-10-16 21:21",
     "toolchain": {
       "scarb": "2.18.0",
       "snforge": "0.59.0",
@@ -133,13 +133,13 @@
       "pct_of_step_cap": 30.0277,
       "fits_gas_cap": true,
       "fits_step_cap": true,
-      "validate_l2_gas": 50132878,
-      "validate_steps": 314542,
-      "validate_pct_of_gas_cap": 50.1329,
-      "validate_pct_of_step_cap": 31.4542,
+      "validate_l2_gas": 49288728,
+      "validate_steps": 307478,
+      "validate_pct_of_gas_cap": 49.2887,
+      "validate_pct_of_step_cap": 30.7478,
       "validate_fits": true,
-      "class_felts": 45785,
-      "class_bytes": 1708939,
+      "class_felts": 45993,
+      "class_bytes": 1717125,
       "verify_profile": [
         {
           "function": "pqbench_falcon_512::hashing::shake256::keccak_f1600[433-3957]{NotSpecialized, NotSpecialized, NonZero(18446744073709551616), }",
@@ -269,13 +269,13 @@
       "pct_of_step_cap": 30.9496,
       "fits_gas_cap": true,
       "fits_step_cap": true,
-      "validate_l2_gas": 51116658,
-      "validate_steps": 323275,
-      "validate_pct_of_gas_cap": 51.1167,
-      "validate_pct_of_step_cap": 32.3275,
+      "validate_l2_gas": 50272508,
+      "validate_steps": 316211,
+      "validate_pct_of_gas_cap": 50.2725,
+      "validate_pct_of_step_cap": 31.6211,
       "validate_fits": true,
-      "class_felts": 48702,
-      "class_bytes": 1800037,
+      "class_felts": 48910,
+      "class_bytes": 1808811,
       "verify_profile": [
         {
           "function": "pqbench_falcon_512::hashing::shake256::keccak_f1600[433-3957]{NotSpecialized, NotSpecialized, NonZero(18446744073709551616), }",

@@ -23,6 +23,7 @@ dependencies = [
  "pqbench_ecdsa_stark",
  "pqbench_falcon_512",
  "pqbench_interface",
+ "snforge_std",
 ]
 
 [[package]]
@@ -61,6 +62,7 @@ name = "pqbench_targets"
 version = "0.1.0"
 dependencies = [
  "openzeppelin_testing",
+ "pq_accounts",
  "pqbench_ecdsa_stark",
  "pqbench_falcon_512",
  "pqbench_interface",

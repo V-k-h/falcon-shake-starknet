@@ -31,3 +31,19 @@ fn bench_verify_ecdsa_stark() {
     let valid = EcdsaStarkVerifier::verify(MSG, public_key.span(), signature.span());
     assert!(valid);
 }
+
+#[test]
+fn test_is_valid_public_key() {
+    let key_pair = KEY_PAIR();
+    assert!(EcdsaStarkVerifier::is_valid_public_key(array![key_pair.public_key].span()));
+    assert!(!EcdsaStarkVerifier::is_valid_public_key(array![].span()));
+    assert!(!EcdsaStarkVerifier::is_valid_public_key(array![key_pair.public_key, 1].span()));
+    // Not every felt is the x-coordinate of a curve point; at least one of 1..=16 is not.
+    let mut found_invalid = false;
+    for x in 1_u8..17 {
+        if !EcdsaStarkVerifier::is_valid_public_key(array![x.into()].span()) {
+            found_invalid = true;
+        }
+    }
+    assert!(found_invalid);
+}

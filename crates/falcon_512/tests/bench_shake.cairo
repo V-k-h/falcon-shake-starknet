@@ -178,3 +178,16 @@ fn test_falcon_512_shake_rejects_other_public_key() {
     assert!(!Falcon512ShakeVerifier::verify(msg(), other.span(), signature().span()));
     assert!(!Falcon512ShakeDirectVerifier::verify(msg(), other.span(), signature_direct().span()));
 }
+
+#[test]
+fn test_falcon_512_public_key_validation() {
+    let pk = public_key();
+    assert!(Falcon512ShakeVerifier::is_valid_public_key(pk.span()));
+    assert!(Falcon512ShakeDirectVerifier::is_valid_public_key(pk.span()));
+    assert!(!Falcon512ShakeVerifier::is_valid_public_key(pk.span().slice(0, 28)));
+    assert!(!Falcon512ShakeVerifier::is_valid_public_key(array![].span()));
+    // A low half at or above Q^9 is not a canonical base-Q digit string.
+    let noncanonical = with_felt_replaced(pk.span(), 4, 0xffffffffffffffffffffffffffffffff);
+    assert!(!Falcon512ShakeVerifier::is_valid_public_key(noncanonical.span()));
+    assert!(!Falcon512ShakeDirectVerifier::is_valid_public_key(noncanonical.span()));
+}

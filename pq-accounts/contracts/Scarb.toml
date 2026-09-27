@@ -12,6 +12,12 @@ pqbench_interface.workspace = true
 pqbench_ecdsa_stark = { path = "../../crates/ecdsa_stark" }
 pqbench_falcon_512 = { path = "../../crates/falcon_512" }
 
+[dev-dependencies]
+snforge_std.workspace = true
+assert_macros.workspace = true
+
+[lib]
+
 [[target.starknet-contract]]
 allowed-libfuncs-list.name = "audited"
 allowed-libfuncs-deny = true
