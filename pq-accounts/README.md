@@ -41,7 +41,8 @@ Signatures use the SHAKE-256 hash-to-point of the Falcon round-3 specification o
 transaction hash, so round-3 Falcon-512 signers (falcon.py, PQClean, liboqs) can produce
 them, and FN-DSA signers cannot, because FIPS 206 frames the message differently; the hint
 account additionally needs `s1 * h`, which anyone can compute from the public signature
-and key. Signing is off-chain; this repository ships no key material.
+and key. Signing is off-chain: [`signer/`](../signer) produces keys and signatures in this
+layout from PQClean's Falcon-512. The repository ships no key material.
 
 The contracts compile against Starknet's audited libfunc list, the list a network
 enforces when a class is declared, and the build fails on any libfunc outside it.

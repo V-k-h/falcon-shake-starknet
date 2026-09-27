@@ -19,7 +19,8 @@ the signature check inside `__validate__`, provided verification fits Starknet's
 validation limits. This repository implements that check for Falcon-512 with the SHAKE-256
 hash-to-point of the Falcon round-3 specification, so signatures from round-3 Falcon
 signers (falcon.py, PQClean, liboqs) verify on-chain once re-encoded into the packed
-layout. FN-DSA, the FIPS 206 draft, frames the message differently (it hashes the public
+layout; [`signer/`](signer) does that for PQClean, and CI verifies its signatures
+on-chain. FN-DSA, the FIPS 206 draft, frames the message differently (it hashes the public
 key and a domain separator in with it), so FN-DSA signers such as rust-fn-dsa are not
 compatible.
 
@@ -76,11 +77,11 @@ than upstream's inside `__validate__`.
 ## Beyond the ratchet
 
 [`benchmarks/`](benchmarks/README.md) measures 64 independent signatures and real
-transactions on starknet-devnet. A signature costs one Keccak permutation, about 4.07M
-L2 gas, more when its salt needs 9 SHAKE blocks instead of 8 (59% against 41% of
-salts), so the ratchet fixture, a 9-block signature, is the practical worst case. A
-real STRK transfer from the hint account costs 46.8M to 50.9M L2 gas end to end, about
-0.6 STRK at mainnet prices on 2026-10-16.
+transactions on starknet-devnet. A signature costs one Keccak permutation, about 4.07M L2
+gas, more when its salt needs 9 SHAKE blocks instead of 8 (59% against 41% of salts), so
+the ratchet fixture, a 9-block signature, is the practical worst case. A real STRK
+transfer from the hint account, signed by the PQClean-based [`signer/`](signer), costs
+46.8M to 50.9M L2 gas end to end, about 0.6 STRK at mainnet prices on 2026-10-16.
 
 ## Layout
 
@@ -99,6 +100,7 @@ efficiency_baseline.json  # the efficiency ratchet (CI-enforced)
 results/             # generated benchmark snapshot
 compare/             # benchmark against other Cairo Falcon-512 verifiers
 benchmarks/          # signature sweep and end-to-end devnet transactions
+signer/              # PQClean-based signer: keys and signatures in the account layout
 ```
 
 Crates: [`bench_interface`](crates/bench_interface), [`ecdsa_stark`](crates/ecdsa_stark),
@@ -118,7 +120,7 @@ make ratchet    # lock measured improvements into efficiency_baseline.json
 make all        # measure, profile, then render results/
 make compare    # measure against other Cairo Falcon verifiers (compare/)
 make sweep      # cost across 64 independent signatures (benchmarks/)
-make devnet FALCON_PY=/path/to/falcon.py PYTHON=<python with its deps>  # devnet transactions
+make devnet     # real PQClean-signed transactions on starknet-devnet (benchmarks/)
 python3 scripts/gen_ntt_tables.py && python3 scripts/verify_ntt_constants.py
 ```
 

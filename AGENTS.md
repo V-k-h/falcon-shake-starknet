@@ -31,11 +31,13 @@ scripts/
   gen_falcon_fixture.py # generates the genuine SHAKE-256 Falcon fixture (needs a falcon.py clone)
   gen_shake_h2p_kat.py  # hashlib-derived known answers for the SHAKE-256 hash-to-point
   gen_account_fixture.py # second Falcon keypair + rotation proof for the account tests
+  gen_pqclean_vectors.py # PQClean-signed interop test vectors (builds signer/)
 schemes.json            # scheme registry: one entry per verifier variant
 efficiency_baseline.json  # the ratchet: pinned L2 gas + steps per benchmark pair
 results/                # generated snapshot (never hand-edited)
 compare/                # cross-implementation benchmark at pinned commits (make compare)
 benchmarks/             # signature sweep and devnet end-to-end runs (make sweep, make devnet)
+signer/                 # Rust reference signer on PQClean: keys and signatures in the account layout
 .github/workflows/      # CI: test suite + efficiency ratchet gate
 .tool-versions          # pinned toolchain (asdf); Makefile targets drive everything
 pq-accounts/            # SEPARATE sub-project: the DEPLOYABLE accounts, not the harness
@@ -58,8 +60,9 @@ interfaces, execution checks, and key storage under `contracts/src/utils/`). It 
 real on-chain artifact. The Falcon benchmark accounts in `crates/bench_targets` embed its
 component, so the validate measurements run the production validation path. Signing
 happens off-chain with a Falcon round-3 signer (falcon.py, PQClean, liboqs; FN-DSA signers
-frame the message differently and are not compatible); this repository ships no key
-material and no signing tool.
+frame the message differently and are not compatible). `signer/` is a reference signer on
+PQClean, and `crates/falcon_512/tests/pqclean_interop.cairo` checks its signatures
+on-chain; the repository ships no key material.
 
 ## What must be updated together
 
