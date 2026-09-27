@@ -1,4 +1,4 @@
-.PHONY: all bench profile report clean test check-eff ratchet
+.PHONY: all bench profile report clean test check-eff ratchet compare
 
 # Full pipeline: measure -> profile -> render the HTML report.
 all: bench profile report
@@ -22,6 +22,10 @@ report:
 
 test:
 	snforge test
+
+# Measure against other Cairo Falcon-512 verifiers at pinned commits (compare/).
+compare:
+	python3 compare/compare.py
 
 clean:
 	rm -rf target snfoundry_trace crates/*/snfoundry_trace

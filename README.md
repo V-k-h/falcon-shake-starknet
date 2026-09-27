@@ -64,6 +64,15 @@ forward graph, so they cost within about 2% of each other; the direct variant ne
 signer-supplied hint and a 31-felt signature instead of 60. See
 [`HINT_VS_DIRECT.md`](crates/falcon_512/HINT_VS_DIRECT.md).
 
+## Comparison
+
+[`compare/`](compare/README.md) measures this repository against
+OpenZeppelin/cairo-pq-verifiers, s2morrow and falcon-starknet at pinned commits, with one
+toolchain and, for the lattice arithmetic, the same signature. The three deployable
+implementations are within about 10% of each other on the lattice core; the
+hash-to-point decides the cost, and the direct account here costs about a fifth less
+than upstream's inside `__validate__`.
+
 ## Layout
 
 ```
@@ -79,6 +88,7 @@ scripts/             # benchmarks, efficiency ratchet, NTT model and generator, 
 schemes.json         # the scheme registry
 efficiency_baseline.json  # the efficiency ratchet (CI-enforced)
 results/             # generated benchmark snapshot
+compare/             # benchmark against other Cairo Falcon-512 verifiers
 ```
 
 Crates: [`bench_interface`](crates/bench_interface), [`ecdsa_stark`](crates/ecdsa_stark),
@@ -96,6 +106,7 @@ make test       # run the test suite
 make check-eff  # efficiency ratchet: fail if any tracked cost regressed
 make ratchet    # lock measured improvements into efficiency_baseline.json
 make all        # measure, profile, then render results/
+make compare    # measure against other Cairo Falcon verifiers (compare/)
 python3 scripts/gen_ntt_tables.py && python3 scripts/verify_ntt_constants.py
 ```
 

@@ -11,3 +11,6 @@ __pycache__/
 # never commit Falcon key material
 *-key.json
 **/tmp/
+
+# cross-implementation benchmark checkouts
+compare/.work/

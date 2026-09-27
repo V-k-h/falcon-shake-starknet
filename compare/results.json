@@ -1,0 +1,236 @@
+{
+  "metadata": {
+    "generated": "2026-10-16",
+    "toolchain": {
+      "scarb": "2.18.0",
+      "snforge": "0.59.0"
+    },
+    "caps": {
+      "validate_max_steps": 1000000,
+      "validate_max_l2_gas": 100000000
+    },
+    "method": "paired-test subtraction: cmp_K - cmp_K_base"
+  },
+  "implementations": {
+    "ours": {
+      "title": "falcon-shake-starknet (this repo)",
+      "url": "this repository",
+      "rev": "b8c7f8e8a84185abc5759e3ac7becb1bed78450b",
+      "costs": {
+        "core_hint_typed": {
+          "l2_gas": 7691940,
+          "steps": 62272
+        },
+        "core_direct_typed": {
+          "l2_gas": 9360080,
+          "steps": 76733
+        },
+        "ntt": {
+          "l2_gas": 2138310,
+          "steps": 15648
+        },
+        "core_direct": {
+          "l2_gas": 13211690,
+          "steps": 111663
+        },
+        "core_hint": {
+          "l2_gas": 12970980,
+          "steps": 110042
+        },
+        "h2p": {
+          "l2_gas": 38964468,
+          "steps": 222219
+        },
+        "verify_direct": {
+          "l2_gas": 49599388,
+          "steps": 309514
+        },
+        "verify_hint": {
+          "l2_gas": 48563028,
+          "steps": 300279
+        },
+        "validate_hint": {
+          "l2_gas": 49306828,
+          "steps": 307657
+        },
+        "validate_direct": {
+          "l2_gas": 50342418,
+          "steps": 316885
+        }
+      },
+      "checks": {
+        "cmpcheck_ntt_matches_model": "pass",
+        "cmpcheck_core_hint_rejects_tampered_hint": "pass",
+        "cmpcheck_core_direct_rejects_tampered_s1": "pass",
+        "cmpcheck_h2p_matches_shared_point": "pass",
+        "cmpcheck_verify_rejects_other_message": "pass",
+        "cmpcheck_validate_hint_rejects_other_hash": "pass",
+        "cmpcheck_validate_direct_rejects_other_hash": "pass"
+      },
+      "classes": {
+        "validate_hint": {
+          "casm_felts": 48988,
+          "sierra_bytes": 1810490
+        },
+        "validate_direct": {
+          "casm_felts": 51905,
+          "sierra_bytes": 1901086
+        }
+      },
+      "errors": []
+    },
+    "oz": {
+      "title": "OpenZeppelin/cairo-pq-verifiers",
+      "url": "https://github.com/OpenZeppelin/cairo-pq-verifiers.git",
+      "rev": "bece5c07eeea5784e570c01108ec000d2d04ae40",
+      "costs": {
+        "ntt": {
+          "l2_gas": 2138310,
+          "steps": 15648
+        },
+        "core_hint": {
+          "l2_gas": 11445930,
+          "steps": 95173
+        },
+        "core_direct": {
+          "l2_gas": 21191110,
+          "steps": 191574
+        },
+        "core_hint_typed": {
+          "l2_gas": 8194160,
+          "steps": 65883
+        },
+        "core_direct_typed": {
+          "l2_gas": 19023730,
+          "steps": 172052
+        },
+        "h2p": {
+          "l2_gas": 40063098,
+          "steps": 231223
+        },
+        "verify_hint": {
+          "l2_gas": 50163878,
+          "steps": 312894
+        },
+        "verify_direct": {
+          "l2_gas": 60361668,
+          "steps": 413837
+        },
+        "validate_hint": {
+          "l2_gas": 51751728,
+          "steps": 327335
+        },
+        "validate_direct": {
+          "l2_gas": 61948748,
+          "steps": 428271
+        }
+      },
+      "checks": {
+        "cmpcheck_ntt_matches_model": "pass",
+        "cmpcheck_core_hint_rejects_tampered_hint": "pass",
+        "cmpcheck_core_direct_rejects_tampered_s1": "pass",
+        "cmpcheck_h2p_matches_shared_point": "pass",
+        "cmpcheck_verify_rejects_other_message": "pass",
+        "cmpcheck_validate_hint_rejects_other_hash": "pass",
+        "cmpcheck_validate_direct_rejects_other_hash": "pass"
+      },
+      "classes": {
+        "validate_hint": {
+          "casm_felts": 52315,
+          "sierra_bytes": 2015771
+        },
+        "validate_direct": {
+          "casm_felts": 52099,
+          "sierra_bytes": 1887937
+        }
+      },
+      "errors": []
+    },
+    "s2morrow": {
+      "title": "feltroidprime/s2morrow",
+      "url": "https://github.com/feltroidprime/s2morrow.git",
+      "rev": "4eff9ab9f5a4eb3d65ea0570dc53813bf9acb12b",
+      "costs": {
+        "h2p": {
+          "l2_gas": 795204,
+          "steps": 6577
+        },
+        "ntt": {
+          "l2_gas": 2189810,
+          "steps": 16163
+        },
+        "verify_hint": {
+          "l2_gas": 10079674,
+          "steps": 81348
+        },
+        "core_hint_typed": {
+          "l2_gas": 7344750,
+          "steps": 58690
+        },
+        "validate_hint": {
+          "l2_gas": 10800974,
+          "steps": 88518
+        }
+      },
+      "checks": {
+        "cmpcheck_core_hint_rejects_tampered_hint": "pass",
+        "cmpcheck_ntt_is_negacyclic": "pass",
+        "cmpcheck_verify_rejects_other_message": "pass",
+        "cmpcheck_validate_rejects_other_hash": "pass"
+      },
+      "classes": {
+        "validate_hint": {
+          "casm_felts": 43097,
+          "sierra_bytes": 1534065
+        }
+      },
+      "errors": []
+    },
+    "falcon_starknet": {
+      "title": "V-k-h/falcon-starknet",
+      "url": "https://github.com/V-k-h/falcon-starknet.git",
+      "rev": "05c1f5426a66e6ca1d5bedb3e005cdcba1276c84",
+      "costs": {
+        "ntt_unrolled": {
+          "l2_gas": 2871230,
+          "steps": 24606
+        },
+        "ntt": {
+          "l2_gas": 32576680,
+          "steps": 296525
+        },
+        "core_hint_typed": {
+          "l2_gas": 76684240,
+          "steps": 692686
+        },
+        "core_hint": {
+          "l2_gas": 76684240,
+          "steps": 692686
+        },
+        "h2p": {
+          "l2_gas": 502739194,
+          "steps": 4246796
+        },
+        "verify_hint": {
+          "l2_gas": 580731114,
+          "steps": 4951840
+        },
+        "verify_from_pk": {
+          "l2_gas": 934409170,
+          "steps": 7953231
+        }
+      },
+      "checks": {
+        "cmpcheck_core_hint_rejects_tampered_hint": "pass",
+        "cmpcheck_verify_rejects_other_message": "pass"
+      },
+      "classes": {
+        "verifier_contract": {
+          "casm_felts": 14819,
+          "sierra_bytes": 377898
+        }
+      },
+      "errors": []
+    }
+  }
+}
