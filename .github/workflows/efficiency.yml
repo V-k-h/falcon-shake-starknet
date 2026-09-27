@@ -1,6 +1,8 @@
-# CI: runs the test suite, then the efficiency ratchet. Any PR that raises a tracked cost
-# (L2 gas or Cairo steps of the benchmark pairs pinned in efficiency_baseline.json) fails;
-# improvements should be locked in with `make ratchet` in the same PR.
+# CI: formatting, the executable NTT correctness argument (including a check that every
+# generated Cairo source matches its generator), the test suite, then the efficiency
+# ratchet. Any PR that raises a tracked cost (L2 gas or Cairo steps of the benchmark pairs
+# pinned in efficiency_baseline.json) fails; improvements should be locked in with
+# `make ratchet` in the same PR.
 name: CI
 
 on:
@@ -27,6 +29,17 @@ jobs:
       - uses: foundry-rs/setup-snfoundry@v5
         with:
           starknet-foundry-version: ${{ steps.versions.outputs.snforge }}
+
+      - name: Check formatting
+        run: scarb fmt --check
+
+      - name: Prove the NTT model and check generated sources are current
+        run: |
+          python3 scripts/gen_ntt_tables.py --emit
+          git diff --exit-code -- crates/ntt/src
+
+      - name: Re-derive the NTT root tables
+        run: python3 scripts/verify_ntt_constants.py
 
       - name: Run tests
         run: snforge test
