@@ -44,3 +44,5 @@ References: [Falcon spec](https://falcon-sign.info/falcon.pdf) ·
 |---|--:|--:|
 | verify, SHAKE-256 hint variant | 48,562,818 | 300,277 |
 | verify, SHAKE-256 direct variant | 49,597,508 | 309,496 |
+| `verify_512_with_hint` from felt coefficients, message point given | 12,970,980 | 110,042 |
+| `verify_512_direct` from felt coefficients, message point given | 13,211,690 | 111,663 |

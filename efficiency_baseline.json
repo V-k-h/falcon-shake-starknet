@@ -82,6 +82,20 @@
       "l2_gas": 49597508,
       "steps": 309496
     },
+    "falcon_512_verify_with_hint_felts": {
+      "package": "pqbench_falcon_512",
+      "test": "bench_verify_512_with_hint",
+      "baseline": "bench_baseline_verify_512_with_hint",
+      "l2_gas": 12970980,
+      "steps": 110042
+    },
+    "falcon_512_verify_direct_felts": {
+      "package": "pqbench_falcon_512",
+      "test": "bench_verify_512_direct",
+      "baseline": "bench_baseline_verify_512_direct",
+      "l2_gas": 13211690,
+      "steps": 111663
+    },
     "falcon_512_shake_validate": {
       "package": "pqbench_targets",
       "test": "bench_validate_falcon_512_shake",
