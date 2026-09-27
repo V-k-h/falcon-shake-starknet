@@ -41,6 +41,11 @@ jobs:
       - name: Re-derive the NTT root tables
         run: python3 scripts/verify_ntt_constants.py
 
+      - name: Check the SHAKE-256 hash-to-point known answers are current
+        run: |
+          python3 scripts/gen_shake_h2p_kat.py
+          git diff --exit-code -- crates/falcon_512/tests/shake_h2p_kat.cairo
+
       - name: Run tests
         run: snforge test
 

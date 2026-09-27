@@ -28,6 +28,7 @@ scripts/
   gen_ntt_tables.py     # proves the NTT engine model + emits its generated tables
   verify_ntt_constants.py  # re-derives the NTT root tables from first principles
   gen_falcon_fixture.py # generates the genuine SHAKE-256 Falcon fixture (needs a falcon.py clone)
+  gen_shake_h2p_kat.py  # hashlib-derived known answers for the SHAKE-256 hash-to-point
 schemes.json            # scheme registry: one entry per verifier variant
 efficiency_baseline.json  # the ratchet: pinned L2 gas + steps per benchmark pair
 results/                # generated snapshot (never hand-edited)
@@ -72,7 +73,8 @@ A change is complete only when everything it invalidates is regenerated in the s
 
 Generated files are never hand-edited: `results/*`, `crates/ntt/src/roots_scaled.cairo`,
 `crates/ntt/src/roots_felt.cairo`, `crates/ntt/src/bitrev.cairo`,
-`crates/ntt/src/falcon512_fast.cairo`, `crates/falcon_512/src/fixtures/shake.cairo`.
+`crates/ntt/src/falcon512_fast.cairo`, `crates/ntt/src/falcon512_inverse_tables.cairo`,
+`crates/falcon_512/src/fixtures/shake.cairo`, `crates/falcon_512/tests/shake_h2p_kat.cairo`.
 Regenerate via the owning script.
 
 ## Performance: every public API is regression-checked

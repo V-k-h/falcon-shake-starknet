@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "generated": "2026-10-16 20:31",
+    "generated": "2026-10-16 20:56",
     "toolchain": {
       "scarb": "2.18.0",
       "snforge": "0.59.0",
@@ -49,8 +49,8 @@
       "verify_l2_gas": 30855,
       "verify_steps": 152,
       "verify_builtins": {
-        "ec_op": 3,
-        "range_check": 7
+        "range_check": 7,
+        "ec_op": 3
       },
       "calldata_l2_gas": 15360,
       "pct_of_gas_cap": 0.0309,
@@ -122,64 +122,58 @@
       "implemented": true,
       "notes": "Standards-compliant hash-to-point: SHAKE-256 exactly per the Falcon specification, so signatures interoperate with any compliant signer (e.g. falcon.py). Hint-based verify: two generated forward NTTs check a signer-supplied s1*h pointwise. On-chain cost is dominated by the pure-Cairo Keccak-f[1600]; a native keccak_f1600 syscall (SNIP-32) would remove most of it.",
       "measured": true,
-      "verify_l2_gas": 50163668,
-      "verify_steps": 312892,
+      "verify_l2_gas": 48562818,
+      "verify_steps": 300277,
       "verify_builtins": {
-        "bitwise": 21816,
-        "range_check": 65952
+        "range_check": 61213,
+        "bitwise": 21816
       },
       "calldata_l2_gas": 455680,
-      "pct_of_gas_cap": 50.1637,
-      "pct_of_step_cap": 31.2892,
+      "pct_of_gas_cap": 48.5628,
+      "pct_of_step_cap": 30.0277,
       "fits_gas_cap": true,
       "fits_step_cap": true,
-      "validate_l2_gas": 51733728,
-      "validate_steps": 327157,
-      "validate_pct_of_gas_cap": 51.7337,
-      "validate_pct_of_step_cap": 32.7157,
+      "validate_l2_gas": 50132878,
+      "validate_steps": 314542,
+      "validate_pct_of_gas_cap": 50.1329,
+      "validate_pct_of_step_cap": 31.4542,
       "validate_fits": true,
-      "class_felts": 50762,
-      "class_bytes": 1966366,
+      "class_felts": 45785,
+      "class_bytes": 1708939,
       "verify_profile": [
         {
           "function": "pqbench_falcon_512::hashing::shake256::keccak_f1600[433-3957]{NotSpecialized, NotSpecialized, NonZero(18446744073709551616), }",
           "flat_steps": 198315,
-          "flat_pct": 63.34,
-          "harness": false
-        },
-        {
-          "function": "pqbench_falcon_512::falcon::verify_512_with_hint_u16[1249-5524]{NotSpecialized, NotSpecialized, NotSpecialized, bool::True({}), NotSpecialized, NotSpecialized, NotSpecialized, NotSpecialized, }",
-          "flat_steps": 33486,
-          "flat_pct": 10.7,
+          "flat_pct": 66.0,
           "harness": false
         },
         {
           "function": "pqbench_ntt::falcon512_fast::ntt_falcon512_fast_u16_unchecked",
           "flat_steps": 31260,
-          "flat_pct": 9.98,
+          "flat_pct": 10.4,
           "harness": false
         },
         {
-          "function": "pqbench_falcon_512::hashing::hash_to_point::hash_to_point_shake_512[2975-3102]",
-          "flat_steps": 31251,
-          "flat_pct": 9.98,
+          "function": "pqbench_falcon_512::falcon::verify_512_with_hint_u16[1249-4524]",
+          "flat_steps": 30938,
+          "flat_pct": 10.3,
+          "harness": false
+        },
+        {
+          "function": "pqbench_falcon_512::hashing::hash_to_point::hash_to_point_shake_512[2784-2967]",
+          "flat_steps": 22301,
+          "flat_pct": 7.42,
           "harness": false
         },
         {
           "function": "pqbench_falcon_512::packing::unpack_512_u16[399-934]",
           "flat_steps": 15288,
-          "flat_pct": 4.88,
+          "flat_pct": 5.09,
           "harness": false
         },
         {
-          "function": "pqbench_falcon_512::falcon::verify_512_with_hint_u16[1249-5524]{NotSpecialized, NotSpecialized, NotSpecialized, bool::True({}), NotSpecialized, NotSpecialized, NotSpecialized, 0, }",
-          "flat_steps": 1067,
-          "flat_pct": 0.34,
-          "harness": false
-        },
-        {
-          "function": "pqbench_falcon_512::hashing::hash_to_point::hash_to_point_shake_512[2913-3207]",
-          "flat_steps": 848,
+          "function": "pqbench_falcon_512::hashing::hash_to_point::hash_to_point_shake_512[2722-3072]",
+          "flat_steps": 797,
           "flat_pct": 0.27,
           "harness": false
         },
@@ -197,7 +191,7 @@
         },
         {
           "function": "pqbench_falcon_512::hashing::hash_to_point::hash_to_point_shake_512",
-          "flat_steps": 195,
+          "flat_steps": 192,
           "flat_pct": 0.06,
           "harness": false
         },
@@ -221,7 +215,7 @@
         },
         {
           "function": "pqbench_falcon_512::falcon::verify_512_with_hint_u16",
-          "flat_steps": 57,
+          "flat_steps": 61,
           "flat_pct": 0.02,
           "harness": false
         },
@@ -262,79 +256,79 @@
       "sig_felts": 31,
       "pubkey_felts": 29,
       "implemented": true,
-      "notes": "The closest on-chain match to a bare standard Falcon signature: standard SHAKE-256 hash-to-point with the hint-free direct core, so only the 31-felt s1||salt is supplied. s1*h is computed with one generated forward NTT and the forward-graph inverse (gather-and-twist, forward transform, untwist), which keeps it within about 1% of the hint variant's cost.",
+      "notes": "The closest on-chain match to a bare standard Falcon signature: standard SHAKE-256 hash-to-point with the hint-free direct core, so only the 31-felt s1||salt is supplied. s1*h is computed with one generated forward NTT and the forward-graph inverse (gather-and-twist, forward transform, untwist), which keeps it within about 2% of the hint variant's cost.",
       "measured": true,
-      "verify_l2_gas": 50696138,
-      "verify_steps": 318500,
+      "verify_l2_gas": 49597508,
+      "verify_steps": 309496,
       "verify_builtins": {
-        "bitwise": 21816,
-        "range_check": 65588
+        "range_check": 62865,
+        "bitwise": 21816
       },
       "calldata_l2_gas": 307200,
-      "pct_of_gas_cap": 50.6961,
-      "pct_of_step_cap": 31.85,
+      "pct_of_gas_cap": 49.5975,
+      "pct_of_step_cap": 30.9496,
       "fits_gas_cap": true,
       "fits_step_cap": true,
-      "validate_l2_gas": 52215288,
-      "validate_steps": 332279,
-      "validate_pct_of_gas_cap": 52.2153,
-      "validate_pct_of_step_cap": 33.2279,
+      "validate_l2_gas": 51116658,
+      "validate_steps": 323275,
+      "validate_pct_of_gas_cap": 51.1167,
+      "validate_pct_of_step_cap": 32.3275,
       "validate_fits": true,
-      "class_felts": 48953,
-      "class_bytes": 1809048,
+      "class_felts": 48702,
+      "class_bytes": 1800037,
       "verify_profile": [
         {
           "function": "pqbench_falcon_512::hashing::shake256::keccak_f1600[433-3957]{NotSpecialized, NotSpecialized, NonZero(18446744073709551616), }",
           "flat_steps": 198315,
-          "flat_pct": 62.13,
+          "flat_pct": 63.93,
           "harness": false
         },
         {
           "function": "pqbench_ntt::falcon512_fast::ntt_falcon512_fast_u16_unchecked",
           "flat_steps": 31260,
-          "flat_pct": 9.79,
+          "flat_pct": 10.08,
           "harness": false
         },
         {
-          "function": "pqbench_falcon_512::hashing::hash_to_point::hash_to_point_shake_512[2975-3102]",
-          "flat_steps": 31251,
-          "flat_pct": 9.79,
+          "function": "pqbench_falcon_512::hashing::hash_to_point::hash_to_point_shake_512[2784-2967]",
+          "flat_steps": 22301,
+          "flat_pct": 7.19,
           "harness": false
         },
         {
           "function": "pqbench_falcon_512::falcon::verify_512_direct_u16[898-2445]",
           "flat_steps": 20243,
-          "flat_pct": 6.34,
+          "flat_pct": 6.53,
           "harness": false
         },
         {
           "function": "pqbench_ntt::falcon512_inverse::intt_product_falcon512_fast_u16[750-2791]",
           "flat_steps": 14642,
-          "flat_pct": 4.59,
+          "flat_pct": 4.72,
           "harness": false
         },
         {
           "function": "pqbench_ntt::falcon512_inverse::untwist_output[328-1807]",
           "flat_steps": 10482,
-          "flat_pct": 3.28,
+          "flat_pct": 3.38,
           "harness": false
         },
         {
           "function": "pqbench_falcon_512::packing::unpack_512_u16[399-934]",
           "flat_steps": 10192,
-          "flat_pct": 3.19,
+          "flat_pct": 3.29,
           "harness": false
         },
         {
-          "function": "pqbench_falcon_512::hashing::hash_to_point::hash_to_point_shake_512[2913-3207]",
-          "flat_steps": 848,
-          "flat_pct": 0.27,
+          "function": "pqbench_falcon_512::hashing::hash_to_point::hash_to_point_shake_512[2722-3072]",
+          "flat_steps": 797,
+          "flat_pct": 0.26,
           "harness": false
         },
         {
           "function": "pqbench_falcon_512::hashing::shake256::keccak_f1600",
           "flat_steps": 585,
-          "flat_pct": 0.18,
+          "flat_pct": 0.19,
           "harness": false
         },
         {
@@ -351,7 +345,7 @@
         },
         {
           "function": "pqbench_falcon_512::hashing::hash_to_point::hash_to_point_shake_512",
-          "flat_steps": 195,
+          "flat_steps": 192,
           "flat_pct": 0.06,
           "harness": false
         },

@@ -55,7 +55,7 @@
       "sig_felts": 31,
       "pubkey_felts": 29,
       "implemented": true,
-      "notes": "The closest on-chain match to a bare standard Falcon signature: standard SHAKE-256 hash-to-point with the hint-free direct core, so only the 31-felt s1||salt is supplied. s1*h is computed with one generated forward NTT and the forward-graph inverse (gather-and-twist, forward transform, untwist), which keeps it within about 1% of the hint variant's cost."
+      "notes": "The closest on-chain match to a bare standard Falcon signature: standard SHAKE-256 hash-to-point with the hint-free direct core, so only the 31-felt s1||salt is supplied. s1*h is computed with one generated forward NTT and the forward-graph inverse (gather-and-twist, forward transform, untwist), which keeps it within about 2% of the hint variant's cost."
     }
   ]
 }

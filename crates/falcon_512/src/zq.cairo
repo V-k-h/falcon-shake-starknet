@@ -3,6 +3,29 @@
 //! Coefficients are `u16` values in `[0, Q)` by construction — every function returns a
 //! `% Q` result — with u32/u64 intermediates sized so the arithmetic cannot overflow.
 
+use corelib_imports::bounded_int::bounded_int::mul;
+use corelib_imports::bounded_int::{
+    BoundedInt, DivRemHelper, MulHelper, UnitInt, bounded_int_div_rem, upcast,
+};
+
+/// Any `u16` value as a bounded integer.
+type U16Value = BoundedInt<0, 65535>;
+/// Product of two `u16` values: at most `(2^16 - 1)^2`.
+type U16Product = BoundedInt<0, 4294836225>;
+type QConst = UnitInt<12289>;
+type ZqValue = BoundedInt<0, 12288>;
+
+const Q_NZ: NonZero<QConst> = 12289;
+
+impl U16ValueMulImpl of MulHelper<U16Value, U16Value> {
+    type Result = U16Product;
+}
+
+impl U16ProductDivRemImpl of DivRemHelper<U16Product, QConst> {
+    type DivT = BoundedInt<0, 349486>;
+    type RemT = ZqValue;
+}
+
 /// The Falcon modulus q = 12289 = 12·1024 + 1.
 pub const Q: u16 = 12289;
 pub const Q32: u32 = 12289;
@@ -36,14 +59,13 @@ pub fn sub_mod(a: u16, b: u16) -> u16 {
     }
 }
 
-/// Multiply two values modulo Q.
+/// Multiply two values modulo Q. Exact for any `u16` operands: the product is typed as a
+/// bounded integer below (2^16 - 1)^2 and reduced once.
 #[inline(always)]
 pub fn mul_mod(a: u16, b: u16) -> u16 {
-    let a: u32 = a.into();
-    let b: u32 = b.into();
-    // a·b <= 12288² < 2^31.
-    let res = (a * b) % Q32;
-    res.try_into().unwrap()
+    let product: U16Product = mul(upcast::<u16, U16Value>(a), upcast::<u16, U16Value>(b));
+    let (_, r) = bounded_int_div_rem(product, Q_NZ);
+    upcast(r)
 }
 
 /// Squared centered representative of a coefficient, as felt252:

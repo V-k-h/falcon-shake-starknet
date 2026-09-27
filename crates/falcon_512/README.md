@@ -25,8 +25,12 @@ lazy block squeezing; see `src/hashing/shake256.cairo`) dominates the verificati
 The hint/direct distinction is explained in [`HINT_VS_DIRECT.md`](HINT_VS_DIRECT.md).
 
 The bench fixture is a genuine signature from the reference falcon.py sampler
-(`scripts/gen_falcon_fixture.py`); tampered messages, salts, signatures, and lengths are
-rejected in tests.
+(`scripts/gen_falcon_fixture.py`). Tests reject tampered messages, salts, keys, and
+lengths, and every single-coefficient change (±1) of `s1` and of the hint at all 512
+positions, in both variants. The hash-to-point is pinned by known answers computed with
+Python's `hashlib` (`scripts/gen_shake_h2p_kat.py`). The public coefficient-level entry
+points (`falcon::verify_512_with_hint`, `falcon::verify_512_direct`) return `false` for any
+input that is not exactly 512 coefficients in `[0, q)`.
 
 Implements `PqSignatureVerifier`.
 References: [Falcon spec](https://falcon-sign.info/falcon.pdf) ·
@@ -36,5 +40,5 @@ References: [Falcon spec](https://falcon-sign.info/falcon.pdf) ·
 
 | Measurement | L2 gas | Steps |
 |---|--:|--:|
-| verify, SHAKE-256 hint variant | 50,163,668 | 312,892 |
-| verify, SHAKE-256 direct variant | 50,696,138 | 318,500 |
+| verify, SHAKE-256 hint variant | 48,562,818 | 300,277 |
+| verify, SHAKE-256 direct variant | 49,597,508 | 309,496 |

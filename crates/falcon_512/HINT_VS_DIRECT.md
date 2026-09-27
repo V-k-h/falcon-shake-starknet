@@ -48,13 +48,13 @@ so the same signer produces both; the hint form only appends `mul_hint`.
 | Signer emits `s1 * h`? | yes (the hint) | no |
 | On-chain transforms | 2 forward NTTs | 1 NTT + 1 INTT (on the forward graph) |
 | Input trust surface | larger (an extra signer-supplied value, checked on-chain) | minimal (just `s1`) |
-| On-chain cost | lowest | about 1% higher (see below) |
+| On-chain cost | lowest | about 2% higher (see below) |
 
 **Cost.** Both variants run two passes of the same generated forward graph, so their
 costs are close. The direct variant replaces the hint's pointwise check and its
-29-felt unpack with the inverse's gather-and-twist and untwist passes: **532,470
-additional L2 gas and 5,608 additional steps** on bare verify (+1.1% gas, +1.8% steps),
-and **481,560 additional L2 gas** inside `__validate__` (+0.9%), where its shorter
+29-felt unpack with the inverse's gather-and-twist and untwist passes: **1,034,690
+additional L2 gas and 9,219 additional steps** on bare verify (+2.1% gas, +3.1% steps),
+and **983,780 additional L2 gas** inside `__validate__` (+2.0%), where its shorter
 signature also costs less to deserialize. Exact figures are in the
 [efficiency table](README.md#current-efficiency).
 

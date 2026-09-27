@@ -19,46 +19,64 @@
 //! functions also accept validated felt coefficients for standalone callers.
 
 use pqbench_ntt::{intt_product_falcon512_fast_u16, ntt_falcon512_fast_u16_unchecked};
-use crate::zq::{Q32, center_sq, centered_difference_sq};
+use crate::zq::{Q, center_sq, centered_difference_sq, mul_mod};
 
 /// Maximum allowed `||s0||^2 + ||s1||^2` for Falcon-512 (FIPS 206 / falcon.py sig_bound).
 pub const SIG_BOUND_512: u64 = 34034726;
 
-/// The Falcon modulus as a u32 divisor.
-const Q32_NZ: NonZero<u32> = 12289;
 
 #[inline(always)]
-fn felts_to_u16(mut values: Span<felt252>) -> Array<u16> {
+/// The 512 coefficients as canonical `u16` values, or `None` unless there are exactly 512
+/// and every one lies in `[0, Q)`.
+fn canonical_coefficients(mut values: Span<felt252>) -> Option<Array<u16>> {
+    if values.len() != 512 {
+        return None;
+    }
     let mut out: Array<u16> = array![];
     while let Some(value) = values.pop_front() {
-        out.append((*value).try_into().unwrap());
+        let coefficient: u16 = (*value).try_into()?;
+        if coefficient >= Q {
+            return None;
+        }
+        out.append(coefficient);
     }
-    out
+    Some(out)
 }
 
-#[inline(always)]
-fn product_difference(a: u16, b: u16, c: u16) -> u32 {
-    let a: u32 = a.into();
-    let b: u32 = b.into();
-    let c: u32 = c.into();
-    a * b + Q32 - c
+/// Whether `values` holds exactly 512 coefficients, each in `[0, Q)`.
+fn is_canonical_point(mut values: Span<u16>) -> bool {
+    if values.len() != 512 {
+        return false;
+    }
+    while let Some(value) = values.pop_front() {
+        if *value >= Q {
+            return false;
+        }
+    }
+    true
 }
 
 
-/// Verify with a signer-supplied product hint. All spans must have length 512 with
-/// coefficients in `[0, Q)` — guaranteed by `packing::unpack_512` and
-/// `hash_to_point::hash_to_point_512`.
+/// Verify with a signer-supplied product hint, from unpacked coefficients.
+///
+/// Every input must hold exactly 512 coefficients in `[0, Q)`; any other input returns
+/// `false`. Returns `true` iff `mul_hint` equals `s1 * h` and the centered norm of
+/// `(msg_point - mul_hint, s1)` is within the Falcon-512 bound.
 pub fn verify_512_with_hint(
     s1: Span<felt252>, h_ntt: Span<felt252>, mul_hint: Span<felt252>, msg_point: Span<u16>,
 ) -> bool {
-    assert(s1.len() == 512, 's1 must be 512 coeffs');
-    assert(h_ntt.len() == 512, 'h_ntt must be 512 coeffs');
-    assert(mul_hint.len() == 512, 'mul_hint must be 512 coeffs');
-    assert(msg_point.len() == 512, 'msg_point must be 512 coeffs');
-
-    let s1 = felts_to_u16(s1);
-    let h_ntt = felts_to_u16(h_ntt);
-    let mul_hint = felts_to_u16(mul_hint);
+    let Some(s1) = canonical_coefficients(s1) else {
+        return false;
+    };
+    let Some(h_ntt) = canonical_coefficients(h_ntt) else {
+        return false;
+    };
+    let Some(mul_hint) = canonical_coefficients(mul_hint) else {
+        return false;
+    };
+    if !is_canonical_point(msg_point) {
+        return false;
+    }
     verify_512_with_hint_u16(s1.span(), h_ntt.span(), mul_hint.span(), msg_point)
 }
 
@@ -119,41 +137,24 @@ pub(crate) fn verify_512_with_hint_u16(
             .multi_pop_front::<16>()
             .unwrap())
             .unbox();
-        // s1n*h + q - hn has zero remainder iff the two NTT coordinates agree mod q,
-        // which by bijectivity binds mul_hint to s1*h.
-        let (_, r0) = DivRem::div_rem(product_difference(s1n0, h0, hn0), Q32_NZ);
-        let (_, r1) = DivRem::div_rem(product_difference(s1n1, h1, hn1), Q32_NZ);
-        let (_, r2) = DivRem::div_rem(product_difference(s1n2, h2, hn2), Q32_NZ);
-        let (_, r3) = DivRem::div_rem(product_difference(s1n3, h3, hn3), Q32_NZ);
-        let (_, r4) = DivRem::div_rem(product_difference(s1n4, h4, hn4), Q32_NZ);
-        let (_, r5) = DivRem::div_rem(product_difference(s1n5, h5, hn5), Q32_NZ);
-        let (_, r6) = DivRem::div_rem(product_difference(s1n6, h6, hn6), Q32_NZ);
-        let (_, r7) = DivRem::div_rem(product_difference(s1n7, h7, hn7), Q32_NZ);
-        let (_, r8) = DivRem::div_rem(product_difference(s1n8, h8, hn8), Q32_NZ);
-        let (_, r9) = DivRem::div_rem(product_difference(s1n9, h9, hn9), Q32_NZ);
-        let (_, r10) = DivRem::div_rem(product_difference(s1n10, h10, hn10), Q32_NZ);
-        let (_, r11) = DivRem::div_rem(product_difference(s1n11, h11, hn11), Q32_NZ);
-        let (_, r12) = DivRem::div_rem(product_difference(s1n12, h12, hn12), Q32_NZ);
-        let (_, r13) = DivRem::div_rem(product_difference(s1n13, h13, hn13), Q32_NZ);
-        let (_, r14) = DivRem::div_rem(product_difference(s1n14, h14, hn14), Q32_NZ);
-        let (_, r15) = DivRem::div_rem(product_difference(s1n15, h15, hn15), Q32_NZ);
-        // Remainders are non-negative, so the sum is zero iff all sixteen are.
-        if r0
-            + r1
-            + r2
-            + r3
-            + r4
-            + r5
-            + r6
-            + r7
-            + r8
-            + r9
-            + r10
-            + r11
-            + r12
-            + r13
-            + r14
-            + r15 != 0 {
+        // mul_mod reduces s1n*h exactly and hn is canonical, so each comparison holds iff
+        // the two NTT coordinates agree mod q, which by bijectivity binds mul_hint to s1*h.
+        if mul_mod(s1n0, h0) != hn0
+            || mul_mod(s1n1, h1) != hn1
+            || mul_mod(s1n2, h2) != hn2
+            || mul_mod(s1n3, h3) != hn3
+            || mul_mod(s1n4, h4) != hn4
+            || mul_mod(s1n5, h5) != hn5
+            || mul_mod(s1n6, h6) != hn6
+            || mul_mod(s1n7, h7) != hn7
+            || mul_mod(s1n8, h8) != hn8
+            || mul_mod(s1n9, h9) != hn9
+            || mul_mod(s1n10, h10) != hn10
+            || mul_mod(s1n11, h11) != hn11
+            || mul_mod(s1n12, h12) != hn12
+            || mul_mod(s1n13, h13) != hn13
+            || mul_mod(s1n14, h14) != hn14
+            || mul_mod(s1n15, h15) != hn15 {
             ok = false;
             break;
         }
@@ -198,14 +199,18 @@ pub(crate) fn verify_512_with_hint_u16(
 /// public key is already stored in the NTT domain — then accept iff
 /// `||msg_point - s1*h||^2 + ||s1||^2 <= SIG_BOUND_512`. Same trust surface as the
 /// textbook equation (no signer-supplied hint) and 29 fewer signature felts than
-/// [`verify_512_with_hint`].
+/// [`verify_512_with_hint`]. Every input must hold exactly 512 coefficients in `[0, Q)`;
+/// any other input returns `false`.
 pub fn verify_512_direct(s1: Span<felt252>, h_ntt: Span<felt252>, msg_point: Span<u16>) -> bool {
-    assert(s1.len() == 512, 's1 must be 512 coeffs');
-    assert(h_ntt.len() == 512, 'h_ntt must be 512 coeffs');
-    assert(msg_point.len() == 512, 'msg_point must be 512 coeffs');
-
-    let s1 = felts_to_u16(s1);
-    let h_ntt = felts_to_u16(h_ntt);
+    let Some(s1) = canonical_coefficients(s1) else {
+        return false;
+    };
+    let Some(h_ntt) = canonical_coefficients(h_ntt) else {
+        return false;
+    };
+    if !is_canonical_point(msg_point) {
+        return false;
+    }
     verify_512_direct_u16(s1.span(), h_ntt.span(), msg_point)
 }
 
@@ -261,8 +266,13 @@ pub(crate) fn verify_512_direct_u16(s1: Span<u16>, h_ntt: Span<u16>, msg_point: 
 mod tests {
     use pqbench_ntt::engine::{intt, ntt};
     use pqbench_ntt::falcon512::{PRODUCT_BITS, PRODUCT_BOUND_FELT, config};
+    use crate::fixtures::shake;
+    use crate::hashing::hash_to_point::hash_to_point_shake_512;
+    use crate::packing::unpack_512_u16;
     use crate::zq::add_mod;
-    use super::{verify_512_direct, verify_512_with_hint};
+    use super::{
+        verify_512_direct, verify_512_direct_u16, verify_512_with_hint, verify_512_with_hint_u16,
+    };
 
     fn to_u16(mut vals: Span<felt252>) -> Array<u16> {
         let mut out: Array<u16> = array![];
@@ -394,5 +404,306 @@ mod tests {
         let mul_hint = mul_zq(s1.span(), h.span());
         let msg_point = to_u16(mul_hint.span());
         assert!(!verify_512_with_hint(s1.span(), h_ntt.span(), mul_hint.span(), msg_point.span()));
+    }
+
+    // --- Malformed input through the public coefficient API ---
+
+    /// Copy of `values` with `values[index]` replaced by `value`.
+    fn with_felt(mut values: Span<felt252>, index: u32, value: felt252) -> Array<felt252> {
+        let mut out: Array<felt252> = array![];
+        let mut i: u32 = 0;
+        while let Some(v) = values.pop_front() {
+            out.append(if i == index {
+                value
+            } else {
+                *v
+            });
+            i += 1;
+        }
+        out
+    }
+
+    #[test]
+    fn test_public_api_rejects_non_canonical_coefficients() {
+        let s1 = small_coeffs(1);
+        let s0 = small_coeffs(2);
+        let h = pseudorandom_coeffs(3);
+        let h_ntt = ntt(h.span(), @config());
+        let hint = mul_zq(s1.span(), h.span());
+        let point = add_points(s0.span(), hint.span());
+        assert!(verify_512_with_hint(s1.span(), h_ntt.span(), hint.span(), point.span()));
+        assert!(verify_512_direct(s1.span(), h_ntt.span(), point.span()));
+        // q itself, the largest u16, and a value that does not fit u16 are all rejected,
+        // in every input.
+        let bad_values: [felt252; 3] = [12289, 65535, 0x10000];
+        for bad in bad_values.span() {
+            let s1_bad = with_felt(s1.span(), 5, *bad);
+            let h_bad = with_felt(h_ntt.span(), 6, *bad);
+            let hint_bad = with_felt(hint.span(), 7, *bad);
+            assert!(!verify_512_with_hint(s1_bad.span(), h_ntt.span(), hint.span(), point.span()));
+            assert!(!verify_512_with_hint(s1.span(), h_bad.span(), hint.span(), point.span()));
+            assert!(!verify_512_with_hint(s1.span(), h_ntt.span(), hint_bad.span(), point.span()));
+            assert!(!verify_512_direct(s1_bad.span(), h_ntt.span(), point.span()));
+            assert!(!verify_512_direct(s1.span(), h_bad.span(), point.span()));
+        }
+        let mut point_bad: Array<u16> = array![12289];
+        let mut rest = point.span().slice(1, 511);
+        while let Some(c) = rest.pop_front() {
+            point_bad.append(*c);
+        }
+        assert!(!verify_512_with_hint(s1.span(), h_ntt.span(), hint.span(), point_bad.span()));
+        assert!(!verify_512_direct(s1.span(), h_ntt.span(), point_bad.span()));
+    }
+
+    #[test]
+    fn test_public_api_rejects_wrong_lengths() {
+        let s1 = small_coeffs(1);
+        let h = pseudorandom_coeffs(3);
+        let h_ntt = ntt(h.span(), @config());
+        let hint = mul_zq(s1.span(), h.span());
+        let point = to_u16(hint.span());
+        let short = s1.span().slice(0, 511);
+        assert!(!verify_512_with_hint(short, h_ntt.span(), hint.span(), point.span()));
+        assert!(
+            !verify_512_with_hint(s1.span(), h_ntt.span().slice(0, 511), hint.span(), point.span()),
+        );
+        assert!(
+            !verify_512_with_hint(s1.span(), h_ntt.span(), hint.span().slice(0, 511), point.span()),
+        );
+        assert!(
+            !verify_512_with_hint(s1.span(), h_ntt.span(), hint.span(), point.span().slice(0, 511)),
+        );
+        assert!(!verify_512_direct(short, h_ntt.span(), point.span()));
+        assert!(!verify_512_direct(s1.span(), h_ntt.span().slice(0, 511), point.span()));
+        assert!(!verify_512_direct(s1.span(), h_ntt.span(), point.span().slice(0, 511)));
+    }
+
+    // --- Exhaustive single-coefficient tampering of a genuine falcon.py signature ---
+
+    /// The SHAKE-256 fixture unpacked: (s1, h_ntt, mul_hint, msg_point).
+    fn fixture_instance() -> (Array<u16>, Array<u16>, Array<u16>, Array<u16>) {
+        let sig = shake::signature();
+        let s1 = unpack_512_u16(sig.span().slice(0, 29)).unwrap();
+        let hint = unpack_512_u16(sig.span().slice(31, 29)).unwrap();
+        let h_ntt = unpack_512_u16(shake::public_key().span()).unwrap();
+        let point = hash_to_point_shake_512(shake::msg(), *sig.at(29), *sig.at(30)).unwrap();
+        (s1, h_ntt, hint, point)
+    }
+
+    /// Copy of `values` with coefficient `index` moved by +1 or -1 modulo q.
+    fn nudged(mut values: Span<u16>, index: u32, up: bool) -> Array<u16> {
+        let mut out: Array<u16> = array![];
+        let mut i: u32 = 0;
+        while let Some(v) = values.pop_front() {
+            if i != index {
+                out.append(*v);
+            } else if up {
+                out.append(add_mod(*v, 1));
+            } else {
+                out.append(add_mod(*v, 12288));
+            }
+            i += 1;
+        }
+        out
+    }
+
+    /// Every hint coefficient in `[start, end)`, moved by ±1, must be rejected: the NTT is a
+    /// bijection, so any other hint fails the pointwise check.
+    fn assert_hint_tampering_rejected(start: u32, end: u32) {
+        let (s1, h_ntt, hint, point) = fixture_instance();
+        assert!(verify_512_with_hint_u16(s1.span(), h_ntt.span(), hint.span(), point.span()));
+        for index in start..end {
+            let up = nudged(hint.span(), index, true);
+            let down = nudged(hint.span(), index, false);
+            assert!(!verify_512_with_hint_u16(s1.span(), h_ntt.span(), up.span(), point.span()));
+            assert!(!verify_512_with_hint_u16(s1.span(), h_ntt.span(), down.span(), point.span()));
+        }
+    }
+
+    /// Every s1 coefficient in `[start, end)`, moved by ±1 under the original hint, must be
+    /// rejected by the hint verifier.
+    fn assert_hint_s1_tampering_rejected(start: u32, end: u32) {
+        let (s1, h_ntt, hint, point) = fixture_instance();
+        for index in start..end {
+            let up = nudged(s1.span(), index, true);
+            let down = nudged(s1.span(), index, false);
+            assert!(!verify_512_with_hint_u16(up.span(), h_ntt.span(), hint.span(), point.span()));
+            assert!(
+                !verify_512_with_hint_u16(down.span(), h_ntt.span(), hint.span(), point.span()),
+            );
+        }
+    }
+
+    /// Every s1 coefficient in `[start, end)`, moved by ±1, must be rejected by the direct
+    /// verifier.
+    fn assert_direct_s1_tampering_rejected(start: u32, end: u32) {
+        let (s1, h_ntt, _, point) = fixture_instance();
+        assert!(verify_512_direct_u16(s1.span(), h_ntt.span(), point.span()));
+        for index in start..end {
+            let up = nudged(s1.span(), index, true);
+            let down = nudged(s1.span(), index, false);
+            assert!(!verify_512_direct_u16(up.span(), h_ntt.span(), point.span()));
+            assert!(!verify_512_direct_u16(down.span(), h_ntt.span(), point.span()));
+        }
+    }
+
+    #[test]
+    fn test_hint_tampering_rejected_0_64() {
+        assert_hint_tampering_rejected(0, 64);
+    }
+
+    #[test]
+    fn test_hint_tampering_rejected_64_128() {
+        assert_hint_tampering_rejected(64, 128);
+    }
+
+    #[test]
+    fn test_hint_tampering_rejected_128_192() {
+        assert_hint_tampering_rejected(128, 192);
+    }
+
+    #[test]
+    fn test_hint_tampering_rejected_192_256() {
+        assert_hint_tampering_rejected(192, 256);
+    }
+
+    #[test]
+    fn test_hint_tampering_rejected_256_320() {
+        assert_hint_tampering_rejected(256, 320);
+    }
+
+    #[test]
+    fn test_hint_tampering_rejected_320_384() {
+        assert_hint_tampering_rejected(320, 384);
+    }
+
+    #[test]
+    fn test_hint_tampering_rejected_384_448() {
+        assert_hint_tampering_rejected(384, 448);
+    }
+
+    #[test]
+    fn test_hint_tampering_rejected_448_512() {
+        assert_hint_tampering_rejected(448, 512);
+    }
+
+    #[test]
+    fn test_hint_s1_tampering_rejected_0_64() {
+        assert_hint_s1_tampering_rejected(0, 64);
+    }
+
+    #[test]
+    fn test_hint_s1_tampering_rejected_64_128() {
+        assert_hint_s1_tampering_rejected(64, 128);
+    }
+
+    #[test]
+    fn test_hint_s1_tampering_rejected_128_192() {
+        assert_hint_s1_tampering_rejected(128, 192);
+    }
+
+    #[test]
+    fn test_hint_s1_tampering_rejected_192_256() {
+        assert_hint_s1_tampering_rejected(192, 256);
+    }
+
+    #[test]
+    fn test_hint_s1_tampering_rejected_256_320() {
+        assert_hint_s1_tampering_rejected(256, 320);
+    }
+
+    #[test]
+    fn test_hint_s1_tampering_rejected_320_384() {
+        assert_hint_s1_tampering_rejected(320, 384);
+    }
+
+    #[test]
+    fn test_hint_s1_tampering_rejected_384_448() {
+        assert_hint_s1_tampering_rejected(384, 448);
+    }
+
+    #[test]
+    fn test_hint_s1_tampering_rejected_448_512() {
+        assert_hint_s1_tampering_rejected(448, 512);
+    }
+
+    #[test]
+    fn test_direct_s1_tampering_rejected_0_32() {
+        assert_direct_s1_tampering_rejected(0, 32);
+    }
+
+    #[test]
+    fn test_direct_s1_tampering_rejected_32_64() {
+        assert_direct_s1_tampering_rejected(32, 64);
+    }
+
+    #[test]
+    fn test_direct_s1_tampering_rejected_64_96() {
+        assert_direct_s1_tampering_rejected(64, 96);
+    }
+
+    #[test]
+    fn test_direct_s1_tampering_rejected_96_128() {
+        assert_direct_s1_tampering_rejected(96, 128);
+    }
+
+    #[test]
+    fn test_direct_s1_tampering_rejected_128_160() {
+        assert_direct_s1_tampering_rejected(128, 160);
+    }
+
+    #[test]
+    fn test_direct_s1_tampering_rejected_160_192() {
+        assert_direct_s1_tampering_rejected(160, 192);
+    }
+
+    #[test]
+    fn test_direct_s1_tampering_rejected_192_224() {
+        assert_direct_s1_tampering_rejected(192, 224);
+    }
+
+    #[test]
+    fn test_direct_s1_tampering_rejected_224_256() {
+        assert_direct_s1_tampering_rejected(224, 256);
+    }
+
+    #[test]
+    fn test_direct_s1_tampering_rejected_256_288() {
+        assert_direct_s1_tampering_rejected(256, 288);
+    }
+
+    #[test]
+    fn test_direct_s1_tampering_rejected_288_320() {
+        assert_direct_s1_tampering_rejected(288, 320);
+    }
+
+    #[test]
+    fn test_direct_s1_tampering_rejected_320_352() {
+        assert_direct_s1_tampering_rejected(320, 352);
+    }
+
+    #[test]
+    fn test_direct_s1_tampering_rejected_352_384() {
+        assert_direct_s1_tampering_rejected(352, 384);
+    }
+
+    #[test]
+    fn test_direct_s1_tampering_rejected_384_416() {
+        assert_direct_s1_tampering_rejected(384, 416);
+    }
+
+    #[test]
+    fn test_direct_s1_tampering_rejected_416_448() {
+        assert_direct_s1_tampering_rejected(416, 448);
+    }
+
+    #[test]
+    fn test_direct_s1_tampering_rejected_448_480() {
+        assert_direct_s1_tampering_rejected(448, 480);
+    }
+
+    #[test]
+    fn test_direct_s1_tampering_rejected_480_512() {
+        assert_direct_s1_tampering_rejected(480, 512);
     }
 }

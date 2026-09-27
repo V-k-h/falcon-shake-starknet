@@ -7,30 +7,76 @@
 //! The message hash is absorbed as its 32 little-endian bytes and the 40-byte salt as two
 //! felts of 20 little-endian bytes each.
 
+use corelib_imports::bounded_int::bounded_int::{add, mul};
+use corelib_imports::bounded_int::{
+    AddHelper, BoundedInt, DivRemHelper, MulHelper, UnitInt, bounded_int_div_rem, downcast, upcast,
+};
 use super::shake256::keccak_f1600;
 
-/// Rejection bound: the largest multiple of Q below 2^16 (5 * 12289).
-const REJECT_BOUND: u32 = 61445;
+/// A squeezed rate lane: 64 bits.
+type Lane = BoundedInt<0, 18446744073709551615>;
+/// Quotients left after peeling one and two 16-bit chunks off a lane.
+type Lane48 = BoundedInt<0, 281474976710655>;
+type Lane32 = BoundedInt<0, 4294967295>;
+/// A 16-bit chunk of a lane, or a 16-bit stream word.
+type Word16 = BoundedInt<0, 65535>;
+type Byte = BoundedInt<0, 255>;
+/// A byte shifted into the high half of a 16-bit word.
+type HighByte = BoundedInt<0, 65280>;
+/// Stream words the rejection rule accepts: below 5q, the largest multiple of q under 2^16.
+type AcceptedWord = BoundedInt<0, 61444>;
+type Base16 = UnitInt<65536>;
+type Base8 = UnitInt<256>;
+type FalconQ = UnitInt<12289>;
+type FalconZq = BoundedInt<0, 12288>;
+
+const BASE16_NZ: NonZero<Base16> = 65536;
+const BASE8_NZ: NonZero<Base8> = 256;
+const BASE8: Base8 = 256;
+const FALCON_Q_NZ: NonZero<FalconQ> = 12289;
+
+impl LaneDivRemImpl of DivRemHelper<Lane, Base16> {
+    type DivT = Lane48;
+    type RemT = Word16;
+}
+
+impl Lane48DivRemImpl of DivRemHelper<Lane48, Base16> {
+    type DivT = Lane32;
+    type RemT = Word16;
+}
+
+impl Lane32DivRemImpl of DivRemHelper<Lane32, Base16> {
+    type DivT = Word16;
+    type RemT = Word16;
+}
+
+impl Word16DivRemImpl of DivRemHelper<Word16, Base8> {
+    type DivT = Byte;
+    type RemT = Byte;
+}
+
+impl ByteShiftImpl of MulHelper<Byte, Base8> {
+    type Result = HighByte;
+}
+
+impl HighByteAddImpl of AddHelper<HighByte, Byte> {
+    type Result = Word16;
+}
+
+impl AcceptedWordDivRemImpl of DivRemHelper<AcceptedWord, FalconQ> {
+    type DivT = BoundedInt<0, 4>;
+    type RemT = FalconZq;
+}
 
 /// Each salt felt must fit in 20 bytes.
 const TWO_POW_160: u256 = 0x10000000000000000000000000000000000000000_u256;
-
-/// Rejection-sample one 16-bit candidate: accept `candidate % Q` while below the
-/// bound and 512 coefficients have not been collected yet.
-#[inline(always)]
-fn push_candidate(candidate: u32, q32: NonZero<u32>, ref coeffs: Array<u16>) {
-    if coeffs.len() != 512 && candidate < REJECT_BOUND {
-        let (_, r) = DivRem::div_rem(candidate, q32);
-        coeffs.append(r.try_into().unwrap());
-    }
-}
 
 /// ## Construction
 ///
 /// The standard Falcon construction (FN-DSA; FIPS 206 is pending): absorb
 /// `salt || message_hash` with SHAKE-256, then consume the squeezed stream as big-endian
-/// 16-bit words, applying the [`push_candidate`] rule (accept `word % Q` while
-/// `word < 5Q`) until 512 coefficients are collected. This is interoperable with any
+/// 16-bit words, applying the rejection rule (accept `word % Q` while `word < 5Q`)
+/// until 512 coefficients are collected. This is interoperable with any
 /// standards-compliant Falcon signer (e.g. falcon.py). The message hash is absorbed as
 /// its 32 little-endian bytes, the salt as its two 20-byte little-endian halves.
 ///
@@ -74,14 +120,14 @@ pub fn hash_to_point_shake_512(
         ],
     );
 
-    let q32: NonZero<u32> = 12289_u32.try_into().unwrap();
-    let two16: NonZero<u64> = 0x10000_u64.try_into().unwrap();
-    let b256: NonZero<u64> = 0x100_u64.try_into().unwrap();
     let mut coeffs: Array<u16> = array![];
     loop {
         let mut lanes = state.span().slice(0, 17);
         while let Some(lane) = lanes.pop_front() {
-            push_lane_words(*lane, two16, b256, q32, ref coeffs);
+            push_lane_words(*lane, ref coeffs);
+            if coeffs.len() == 512 {
+                break;
+            }
         }
         if coeffs.len() == 512 {
             break;
@@ -91,25 +137,38 @@ pub fn hash_to_point_shake_512(
     Some(coeffs)
 }
 
-/// Read one squeezed rate lane (< 2^64) as four big-endian 16-bit candidate words. The
-/// lane's bytes are little-endian, so each 16-bit chunk holds its stream word
-/// byte-swapped: chunk = b0 + 256*b1 for the stream word 256*b0 + b1.
+/// Read one squeezed rate lane as four big-endian 16-bit stream words and apply the
+/// rejection rule to each. The lane's bytes are little-endian, so each 16-bit chunk
+/// holds its stream word byte-swapped: chunk = b0 + 256*b1 for the stream word
+/// 256*b0 + b1. Keccak lanes are below 2^64 by construction (see `shake256.cairo`).
 #[inline(always)]
-fn push_lane_words(
-    lane: u128, two16: NonZero<u64>, b256: NonZero<u64>, q32: NonZero<u32>, ref coeffs: Array<u16>,
-) {
-    let lane64: u64 = lane.try_into().unwrap();
-    let (rest, c0) = DivRem::div_rem(lane64, two16);
-    let (rest, c1) = DivRem::div_rem(rest, two16);
-    let (c3, c2) = DivRem::div_rem(rest, two16);
-    let (b1, b0) = DivRem::div_rem(c0, b256);
-    push_candidate((b0 * 256 + b1).try_into().unwrap(), q32, ref coeffs);
-    let (b1, b0) = DivRem::div_rem(c1, b256);
-    push_candidate((b0 * 256 + b1).try_into().unwrap(), q32, ref coeffs);
-    let (b1, b0) = DivRem::div_rem(c2, b256);
-    push_candidate((b0 * 256 + b1).try_into().unwrap(), q32, ref coeffs);
-    let (b1, b0) = DivRem::div_rem(c3, b256);
-    push_candidate((b0 * 256 + b1).try_into().unwrap(), q32, ref coeffs);
+fn push_lane_words(lane: u128, ref coeffs: Array<u16>) {
+    let lane: Lane = match downcast(lane) {
+        Some(lane) => lane,
+        None => panic!("Keccak lane exceeds 64 bits"),
+    };
+    let (rest, c0) = bounded_int_div_rem(lane, BASE16_NZ);
+    let (rest, c1) = bounded_int_div_rem(rest, BASE16_NZ);
+    let (c3, c2) = bounded_int_div_rem(rest, BASE16_NZ);
+    push_word(c0, ref coeffs);
+    push_word(c1, ref coeffs);
+    push_word(c2, ref coeffs);
+    push_word(c3, ref coeffs);
+}
+
+/// Byte-swap one lane chunk into its stream word and, while fewer than 512 coefficients
+/// are collected, accept `word % Q` when `word < 5Q`.
+#[inline(always)]
+fn push_word(chunk: Word16, ref coeffs: Array<u16>) {
+    if coeffs.len() == 512 {
+        return;
+    }
+    let (b1, b0) = bounded_int_div_rem(chunk, BASE8_NZ);
+    let word: Word16 = add(mul(b0, BASE8), b1);
+    if let Some(accepted) = downcast::<Word16, AcceptedWord>(word) {
+        let (_, r) = bounded_int_div_rem(accepted, FALCON_Q_NZ);
+        coeffs.append(upcast(r));
+    }
 }
 
 #[cfg(test)]
