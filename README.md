@@ -46,8 +46,8 @@ Current efficiency of every measured entry, per crate (the values pinned in
 | [`ecdsa_stark`](crates/ecdsa_stark) | verify (classical control) | 30,855 | 152 |
 | [`falcon_512`](crates/falcon_512) | verify, SHAKE-256 hint variant | 48,562,818 | 300,277 |
 | [`falcon_512`](crates/falcon_512) | verify, SHAKE-256 direct variant | 49,597,508 | 309,496 |
-| [`falcon_512`](crates/falcon_512) | `verify_512_with_hint` from felt coefficients | 12,970,980 | 110,042 |
-| [`falcon_512`](crates/falcon_512) | `verify_512_direct` from felt coefficients | 13,211,690 | 111,663 |
+| [`falcon_512`](crates/falcon_512) | `verify_512_with_hint` from felt coefficients | 9,596,700 | 78,626 |
+| [`falcon_512`](crates/falcon_512) | `verify_512_direct` from felt coefficients | 10,829,140 | 89,493 |
 | [`bench_targets`](crates/bench_targets) | ECDSA-STARK account, inside `__validate__` | 160,795 | 1,437 |
 | [`bench_targets`](crates/bench_targets) | Falcon-512 SHAKE-256 hint account, inside `__validate__` | 49,288,728 | 307,478 |
 | [`bench_targets`](crates/bench_targets) | Falcon-512 SHAKE-256 direct account, inside `__validate__` | 50,272,508 | 316,211 |

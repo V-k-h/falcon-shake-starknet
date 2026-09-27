@@ -18,15 +18,26 @@
 //! that representation through the generated NTT and norm calculation. The public core
 //! functions also accept validated felt coefficients for standalone callers.
 
+use corelib_imports::bounded_int::{BoundedInt, downcast, upcast};
 use pqbench_ntt::{intt_product_falcon512_fast_u16, ntt_falcon512_fast_u16_unchecked};
-use crate::zq::{Q, center_sq, centered_difference_sq, mul_mod};
+use crate::zq::{center_sq, centered_difference_sq, mul_mod};
 
 /// Maximum allowed `||s0||^2 + ||s1||^2` for Falcon-512 (the specification's and falcon.py's
 /// sig_bound).
 pub const SIG_BOUND_512: u64 = 34034726;
 
 
+/// A coefficient in `[0, Q)`.
+type Coefficient = BoundedInt<0, 12288>;
+
+/// `value` as a `u16`, if it lies in `[0, Q)`: one bounded downcast checks both that it fits
+/// and that it is canonical.
 #[inline(always)]
+fn canonical(value: felt252) -> Option<u16> {
+    let coefficient: Coefficient = downcast(value)?;
+    Some(upcast(coefficient))
+}
+
 /// The 512 coefficients as canonical `u16` values, or `None` unless there are exactly 512
 /// and every one lies in `[0, Q)`.
 fn canonical_coefficients(mut values: Span<felt252>) -> Option<Array<u16>> {
@@ -34,12 +45,24 @@ fn canonical_coefficients(mut values: Span<felt252>) -> Option<Array<u16>> {
         return None;
     }
     let mut out: Array<u16> = array![];
-    while let Some(value) = values.pop_front() {
-        let coefficient: u16 = (*value).try_into()?;
-        if coefficient >= Q {
-            return None;
-        }
-        out.append(coefficient);
+    while let Some(chunk) = values.multi_pop_front::<16>() {
+        let [v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15] = chunk.unbox();
+        out.append(canonical(v0)?);
+        out.append(canonical(v1)?);
+        out.append(canonical(v2)?);
+        out.append(canonical(v3)?);
+        out.append(canonical(v4)?);
+        out.append(canonical(v5)?);
+        out.append(canonical(v6)?);
+        out.append(canonical(v7)?);
+        out.append(canonical(v8)?);
+        out.append(canonical(v9)?);
+        out.append(canonical(v10)?);
+        out.append(canonical(v11)?);
+        out.append(canonical(v12)?);
+        out.append(canonical(v13)?);
+        out.append(canonical(v14)?);
+        out.append(canonical(v15)?);
     }
     Some(out)
 }
@@ -49,8 +72,54 @@ fn is_canonical_point(mut values: Span<u16>) -> bool {
     if values.len() != 512 {
         return false;
     }
-    while let Some(value) = values.pop_front() {
-        if *value >= Q {
+    while let Some(chunk) = values.multi_pop_front::<16>() {
+        let [v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15] = chunk.unbox();
+        if downcast::<u16, Coefficient>(v0).is_none() {
+            return false;
+        }
+        if downcast::<u16, Coefficient>(v1).is_none() {
+            return false;
+        }
+        if downcast::<u16, Coefficient>(v2).is_none() {
+            return false;
+        }
+        if downcast::<u16, Coefficient>(v3).is_none() {
+            return false;
+        }
+        if downcast::<u16, Coefficient>(v4).is_none() {
+            return false;
+        }
+        if downcast::<u16, Coefficient>(v5).is_none() {
+            return false;
+        }
+        if downcast::<u16, Coefficient>(v6).is_none() {
+            return false;
+        }
+        if downcast::<u16, Coefficient>(v7).is_none() {
+            return false;
+        }
+        if downcast::<u16, Coefficient>(v8).is_none() {
+            return false;
+        }
+        if downcast::<u16, Coefficient>(v9).is_none() {
+            return false;
+        }
+        if downcast::<u16, Coefficient>(v10).is_none() {
+            return false;
+        }
+        if downcast::<u16, Coefficient>(v11).is_none() {
+            return false;
+        }
+        if downcast::<u16, Coefficient>(v12).is_none() {
+            return false;
+        }
+        if downcast::<u16, Coefficient>(v13).is_none() {
+            return false;
+        }
+        if downcast::<u16, Coefficient>(v14).is_none() {
+            return false;
+        }
+        if downcast::<u16, Coefficient>(v15).is_none() {
             return false;
         }
     }
@@ -434,26 +503,45 @@ mod tests {
         let point = add_points(s0.span(), hint.span());
         assert!(verify_512_with_hint(s1.span(), h_ntt.span(), hint.span(), point.span()));
         assert!(verify_512_direct(s1.span(), h_ntt.span(), point.span()));
-        // q itself, the largest u16, and a value that does not fit u16 are all rejected,
-        // in every input.
-        let bad_values: [felt252; 3] = [12289, 65535, 0x10000];
+        // q itself, the largest u16, values that do not fit u16 or u128, and the largest
+        // field element are all rejected, in every input, at the first and last positions.
+        let bad_values: [felt252; 5] = [
+            12289, 65535, 0x10000, 0x100000000000000000000000000000005, -1,
+        ];
         for bad in bad_values.span() {
-            let s1_bad = with_felt(s1.span(), 5, *bad);
-            let h_bad = with_felt(h_ntt.span(), 6, *bad);
-            let hint_bad = with_felt(hint.span(), 7, *bad);
-            assert!(!verify_512_with_hint(s1_bad.span(), h_ntt.span(), hint.span(), point.span()));
-            assert!(!verify_512_with_hint(s1.span(), h_bad.span(), hint.span(), point.span()));
-            assert!(!verify_512_with_hint(s1.span(), h_ntt.span(), hint_bad.span(), point.span()));
-            assert!(!verify_512_direct(s1_bad.span(), h_ntt.span(), point.span()));
-            assert!(!verify_512_direct(s1.span(), h_bad.span(), point.span()));
+            for index in array![0_u32, 511].span() {
+                let s1_bad = with_felt(s1.span(), *index, *bad);
+                let h_bad = with_felt(h_ntt.span(), *index, *bad);
+                let hint_bad = with_felt(hint.span(), *index, *bad);
+                assert!(
+                    !verify_512_with_hint(s1_bad.span(), h_ntt.span(), hint.span(), point.span()),
+                );
+                assert!(!verify_512_with_hint(s1.span(), h_bad.span(), hint.span(), point.span()));
+                assert!(
+                    !verify_512_with_hint(s1.span(), h_ntt.span(), hint_bad.span(), point.span()),
+                );
+                assert!(!verify_512_direct(s1_bad.span(), h_ntt.span(), point.span()));
+                assert!(!verify_512_direct(s1.span(), h_bad.span(), point.span()));
+            }
         }
-        let mut point_bad: Array<u16> = array![12289];
-        let mut rest = point.span().slice(1, 511);
-        while let Some(c) = rest.pop_front() {
-            point_bad.append(*c);
+        for bad in array![12289_u16, 65535].span() {
+            for index in array![0_u32, 511].span() {
+                let mut point_bad: Array<u16> = array![];
+                let mut i = 0;
+                for c in point.span() {
+                    point_bad.append(if i == *index {
+                        *bad
+                    } else {
+                        *c
+                    });
+                    i += 1;
+                }
+                assert!(
+                    !verify_512_with_hint(s1.span(), h_ntt.span(), hint.span(), point_bad.span()),
+                );
+                assert!(!verify_512_direct(s1.span(), h_ntt.span(), point_bad.span()));
+            }
         }
-        assert!(!verify_512_with_hint(s1.span(), h_ntt.span(), hint.span(), point_bad.span()));
-        assert!(!verify_512_direct(s1.span(), h_ntt.span(), point_bad.span()));
     }
 
     #[test]

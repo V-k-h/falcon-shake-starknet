@@ -86,15 +86,15 @@
       "package": "pqbench_falcon_512",
       "test": "bench_verify_512_with_hint",
       "baseline": "bench_baseline_verify_512_with_hint",
-      "l2_gas": 12970980,
-      "steps": 110042
+      "l2_gas": 9596700,
+      "steps": 78626
     },
     "falcon_512_verify_direct_felts": {
       "package": "pqbench_falcon_512",
       "test": "bench_verify_512_direct",
       "baseline": "bench_baseline_verify_512_direct",
-      "l2_gas": 13211690,
-      "steps": 111663
+      "l2_gas": 10829140,
+      "steps": 89493
     },
     "falcon_512_shake_validate": {
       "package": "pqbench_targets",
